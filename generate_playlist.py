@@ -47,7 +47,6 @@ def build_iptvx_logo_and_id(channel_name):
         logo_url = "https://iptvx.one"
     elif "trace brazuca" in name_clean:
         tvg_id = "Trace Brazuca"
-        # Для Brazuca используется базовый логотип Trace, если основного нет
         logo_url = "https://iptvx.one"
     elif "xite" in name_clean:
         tvg_id = "Xite Hits"
@@ -96,7 +95,6 @@ def load_external_iptvru_stable():
                 if group_match:
                     group = group_match.group(1).strip()
                 
-                # Извлекаем оригинальный tvg-id, если он есть
                 tvg_id_match = re.search(r'tvg-id="([^"]+)"', current_meta, re.IGNORECASE)
                 tvg_id = tvg_id_match.group(1).strip() if tvg_id_match else name
                 
@@ -116,7 +114,7 @@ def main():
     external = load_external_iptvru_stable()
     final_channels.update(external)
 
-    # 2. Подгружаем ваши ручные каналы из input_channels.txt (у них приоритет)
+    # 2. Подгружаем ваши ручные каналы из input_channels.txt (ИСПРАВЛЕННАЯ РАСПАКОВКА МАССИВА)
     print(f"📖 Читаем ручной файл {INPUT_FILE}...")
     if os.path.exists(INPUT_FILE):
         with open(INPUT_FILE, "r", encoding="utf-8") as f:
@@ -126,7 +124,11 @@ def main():
                     continue
                 parts = [p.strip() for p in line.split("|")]
                 if len(parts) >= 3:
-                    name, group, url = parts, parts, parts
+                    # Корректное поиндексное извлечение строк вместо ошибочной множественной распаковки
+                    name = parts[0]
+                    group = parts[1]
+                    url = parts[2]
+                    
                     final_channels[name] = {"group": group, "url": url, "logo": "", "tvg_id": "", "is_manual": True}
                     manual_names.add(name)
     else:
