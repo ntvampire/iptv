@@ -68,7 +68,7 @@ def find_and_download_logo(channel_name):
 
 def load_external_iptvru():
     channels = {}
-    url = "https://githubusercontent.com"
+    url = "https://smolnp.github.io/IPTVru//IPTVstable.m3u8"
     print("🌐 Загружаем плейлист IPTVru...")
     try:
         res = requests.get(url, timeout=10)
@@ -129,21 +129,30 @@ def main():
     # 3. Сборка
     playlist_content = f'#EXTM3U x-tvg-url="{EPG_URL}"\n\n'
     total_to_check = len(final_channels)
-    print(f"\n⚡ Запуск онлайн-проверки стримов (Всего: {total_to_check}). Пожалуйста, подождите...")
+    print(f"\n⚡ Формирование плейлиста (Всего каналов: {total_to_check})...")
     
     added_count = 0
     for name, data in final_channels.items():
         stream_url = data["url"]
         group = data["group"]
         
-        if check_stream(stream_url):
-            logo_url = find_and_download_logo(name)
-            playlist_content += f'#EXTINF:-1 tvg-id="{name}" tvg-logo="{logo_url}" group-title="{group}",{name}\n'
-            playlist_content += f'{stream_url}\n\n'
-            added_count += 1
+        # Лайфхак: тщательно проверяем только ваши личные ссылки (из input_channels.txt),
+        # а каналы из IPTVru добавляем сразу, чтобы сэкономить время робота.
+        is_manual = any(name in line for line in open(INPUT_FILE, "r", encoding="utf-8")) if os.path.exists(INPUT_FILE) else False
+        
+        if is_manual:
+            if not check_stream(stream_url):
+                print(f"❌ Ваш ручной канал {name} недоступен. Пропускаем.")
+                continue
+        
+        logo_url = find_and_download_logo(name)
+        playlist_content += f'#EXTINF:-1 tvg-id="{name}" tvg-logo="{logo_url}" group-title="{group}",{name}\n'
+        playlist_content += f'{stream_url}\n\n'
+        added_count += 1
             
     with open(OUTPUT_FILE, "w", encoding="utf-8") as out:
         out.write(playlist_content)
+
         
     print(f"\n🎉 Плейлист index.m3u успешно сохранен. Добавлено работающих каналов: {added_count} из {total_to_check}.")
 
