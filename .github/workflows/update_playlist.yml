@@ -5,7 +5,7 @@ on:
     branches:
       - main
   schedule:
-    - cron: '0 3 * * *'  # Каждый день в 3 часа ночи автоматическая проверка
+    - cron: '0 3 * * *'
 
 jobs:
   build:
@@ -14,13 +14,14 @@ jobs:
       contents: write
 
     steps:
+    # Используем актуальные версии экшенов, совместимые с Node 24
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v4.2.0 
 
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v5.3.0
       with:
-        python-version: '3.x'
+        python-version: '3.11'
 
     - name: Install dependencies
       run: |
@@ -35,12 +36,15 @@ jobs:
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@://github.com"
         
-        # Добавляем и плейлист, и всю папку с новыми логотипами
-        git add index.m3u logos/* || true
+        git add index.m3u
+        # Добавляем новые логотипы, если папка существует и наполнена
+        if [ -d "logos" ]; then
+          git add logos/
+        fi
         
         if git diff --staged --quiet; then
           echo "Изменений в плейлисте и логотипах нет."
         else
-          git commit -m "Автообновление плейлиста: проверка ссылок и загрузка логотипов"
+          git commit -m "Автообновление плейлиста: импорт из IPTVru, проверка ссылок и логотипы"
           git push
         fi
