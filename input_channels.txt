@@ -1,4 +1,4 @@
-Trace Urban | Музыка | https://channels.trace.plus/Traceprod/URBAN_INTER_hd/index.m3u8
+Trace Urban HD | Музыка | https://channels.trace.plus/Traceprod/URBAN_INTER_hd/index.m3u8
 Trace Urban | Музыка | https://amg01131-tracetv-amg01131c1-rakuten-us-1081.playouts.now.amagi.tv/playlist/amg01131-tracetvfast-traceurban-rakutenus/playlist.m3u8
 Trace UK | Музыка | https://d2l4tng0wskzvn.cloudfront.net/Trace_GB.m3u8
 Trace Latina | Музыка | https://amg01131-tracetv-tracelatina-glewed-vtnk7.amagi.tv/playlist.m3u8
