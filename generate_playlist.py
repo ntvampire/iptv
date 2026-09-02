@@ -63,7 +63,7 @@ def build_iptvx_logo_and_id(channel_name):
 def load_external_iptvru_stable():
     """Скачивает и парсит СТАБИЛЬНЫЙ плейлист IPTVru с сохранением оригинальных иконок"""
     channels = {}
-    url = "https://githubusercontent.com"
+    url = "https://smolnp.github.io/IPTVru//IPTVstable.m3u8"
     print("🌐 Загружаем стабильный веб-список IPTVru (IPTVstable.m3u8)...")
     try:
         res = requests.get(url, timeout=10)
