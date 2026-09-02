@@ -5,26 +5,28 @@ import requests
 INPUT_FILE = "input_channels.txt"
 OUTPUT_FILE = "index.m3u"
 LOGOS_DIR = "logos"
-EPG_URL = "https://iptvx.one"  # Отличный EPG источник для СНГ/РФ
+EPG_URL = "https://iptvx.one"
 
-# URL стабильного плейлиста IPTVru
-IPTVRU_URL = "https://githubusercontent.com"
+# === НАСТРОЙКА ССЫЛКИ (УКАЖИТЕ СВОИ ДАННЫЕ) ===
+MY_GITHUB_USERNAME = "ntvampire" 
+MY_GITHUB_REPO = "iptv"
+# ===============================================
 
-GITHUB_REPOSITORY = os.getenv("GITHUB_REPOSITORY", "your_username/your_repo")
-USER_NAME, REPO_NAME = GITHUB_REPOSITORY.split("/") if "/" in GITHUB_REPOSITORY else ("username", "repo")
-BASE_URL = f"https://{USER_NAME}.github.io/{REPO_NAME}"
+BASE_URL = f"https://{MY_GITHUB_USERNAME}.github.io/{MY_GITHUB_REPO}"
 
 def slugify(text):
+    """Очищает имя канала для создания безопасного имени файла картинок"""
     text = text.lower().strip()
-    text = re.sub(r'[^a-z0-9а-яё\s-]', '', text) # Поддержка кириллицы для slug
+    text = re.sub(r'[^a-z0-9а-яё\s-]', '', text)
     return re.sub(r'[\s-]+', '_', text)
 
 def check_stream(url):
+    """Проверяет, жив ли поток вещания"""
     try:
-        response = requests.head(url, timeout=4, allow_redirects=True)
+        response = requests.head(url, timeout=3, allow_redirects=True)
         if response.status_code < 400:
             return True
-        response = requests.get(url, timeout=4, stream=True)
+        response = requests.get(url, timeout=3, stream=True)
         if response.status_code == 200:
             return True
     except Exception:
@@ -32,36 +34,54 @@ def check_stream(url):
     return False
 
 def find_and_download_logo(channel_name):
+    """Ищет логотип в глобальной базе и скачивает его в репозиторий"""
     os.makedirs(LOGOS_DIR, exist_ok=True)
     logo_filename = f"{slugify(channel_name)}.png"
     local_logo_path = os.path.join(LOGOS_DIR, logo_filename)
     
+    # Если логотип уже есть в вашей папке, берем его и не качаем заново
     if os.path.exists(local_logo_path):
         return f"{BASE_URL}/{LOGOS_DIR}/{logo_filename}"
     
-    # Поиск логотипа
-    search_names = [channel_name.replace(" ", "").lower(), slugify(channel_name).replace("_", "")]
-    for name in search_names:
-        test_url = f"https://githubusercontent.com{name}.png"
+    print(f"🔍 Ищем логотип для: {channel_name}")
+    
+    # Варианты названий для умного поиска в глобальной базе iptv-org
+    name_clean = channel_name.lower().strip()
+    search_variants = [
+        slugify(channel_name).replace("_", ""), # 'traceurban'
+        slugify(channel_name),                  # 'trace_urban'
+        name_clean.split(" ")[0],               # первое слово, например 'trace' или 'mtv'
+    ]
+    
+    # Если канал содержит слово 'trace', добавим в приоритет базовый логотип Trace
+    if "trace" in name_clean:
+        search_variants.insert(0, "traceurban")
+        
+    for variant in search_variants:
+        if not variant:
+            continue
+        test_url = f"https://githubusercontent.com{variant}.png"
         try:
             res = requests.get(test_url, timeout=3)
             if res.status_code == 200:
                 with open(local_logo_path, 'wb') as f:
                     f.write(res.content)
+                print(f"📥 Логотип успешно сохранен в репозиторий: {local_logo_path}")
                 return f"{BASE_URL}/{LOGOS_DIR}/{logo_filename}"
         except Exception:
             continue
             
+    # Красивая универсальная музыкальная заглушка, если ничего не найдено
     return "https://githubusercontent.com"
 
 def load_external_iptvru():
     """Скачивает и парсит каналы из проекта IPTVru"""
     channels = {}
-    print(f"🌐 Скачиваем внешний плейлист IPTVru...")
+    url = "https://githubusercontent.com"
+    print("🌐 Загружаем плейлист IPTVru...")
     try:
-        res = requests.get(IPTVRU_URL, timeout=10)
+        res = requests.get(url, timeout=10)
         if res.status_code != 200:
-            print("⚠️ Не удалось загрузить IPTVru, используем только локальные каналы.")
             return channels
             
         lines = res.text.splitlines()
@@ -72,32 +92,26 @@ def load_external_iptvru():
             if line.startswith("#EXTINF:"):
                 current_inf = line
             elif line.startswith("http") and current_inf:
-                # Извлекаем имя канала (все после последней запятой)
                 name_match = re.search(r',([^,]+)$', current_inf)
                 name = name_match.group(1).strip() if name_match else "Unknown"
                 
-                # Извлекаем категорию group-title
                 group_match = re.search(r'group-title="([^"]+)"', current_inf)
                 group = group_match.group(1).strip() if group_match else "Общие"
                 
-                # Сохраняем в словарь (ключ — имя канала)
                 channels[name] = {"group": group, "url": line}
                 current_inf = None
-                
-        print(f"📊 Успешно импортировано {len(channels)} каналов из IPTVru.")
     except Exception as e:
-        print(f"❌ Ошибка парсинга IPTVru: {e}")
+        print(f"Ошибка загрузки IPTVru: {e}")
     return channels
 
 def main():
-    final_channels = {} # Словарь для агрегации: {Имя: {group: ..., url: ...}}
+    final_channels = {}
 
-    # 1. Сначала загружаем каналы из IPTVru
-    external_channels = load_external_iptvru()
-    final_channels.update(external_channels)
+    # 1. Загружаем из IPTVru
+    external = load_external_iptvru()
+    final_channels.update(external)
 
-    # 2. Затем загружаем локальные ручные каналы (они перезапишут внешние, если совпадут имена)
-    print(f"📖 Читаем локальные каналы из {INPUT_FILE}...")
+    # 2. Накладываем ваши ручные каналы (у них приоритет)
     if os.path.exists(INPUT_FILE):
         with open(INPUT_FILE, "r", encoding="utf-8") as f:
             for line in f:
@@ -107,37 +121,25 @@ def main():
                 parts = [p.strip() for p in line.split("|")]
                 if len(parts) >= 3:
                     name, group, url = parts[0], parts[1], parts[2]
-                    final_channels[name] = {"group": group, "url": url} # Перезапись/Добавление
-    else:
-        print(f"⚠️ Локальный файл {INPUT_FILE} не найден.")
+                    final_channels[name] = {"group": group, "url": url}
 
-    # 3. Фильтрация, проверка стримов и сборка итогового плейлиста
+    # 3. Сборка итогового файла
     playlist_content = f'#EXTM3U x-tvg-url="{EPG_URL}"\n\n'
-    working_count = 0
-    broken_count = 0
-
-    print(f"\n⚡ Начинаем проверку всех каналов (всего: {len(final_channels)})...")
     
+    print(f"\n⚡ Проверяем каналы на работоспособность...")
     for name, data in final_channels.items():
-        url = data["url"]
+        stream_url = data["url"]
         group = data["group"]
         
-        # Проверяем поток на доступность
-        if check_stream(url):
+        if check_stream(stream_url):
             logo_url = find_and_download_logo(name)
             playlist_content += f'#EXTINF:-1 tvg-id="{name}" tvg-logo="{logo_url}" group-title="{group}",{name}\n'
-            playlist_content += f'{url}\n\n'
-            working_count += 1
-            print(f"✅ Добавлен: {name} [{group}]")
-        else:
-            broken_count += 1
-
-    # Сохраняем результат
+            playlist_content += f'{stream_url}\n\n'
+            print(f"✅ Добавлен: {name}")
+            
     with open(OUTPUT_FILE, "w", encoding="utf-8") as out:
         out.write(playlist_content)
-        
-    print(f"\n🎉 Сборка завершена успешно!")
-    print(f"📊 Итог: Рабочих каналов в листе: {working_count}. Отсеяно мертвых ссылок: {broken_count}.")
+    print("\n🎉 Готово! Плейлист index.m3u полностью обновлен.")
 
 if __name__ == "__main__":
     main()
