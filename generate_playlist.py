@@ -71,8 +71,10 @@ def find_and_download_logo(channel_name):
         except Exception:
             continue
             
-    # Красивая универсальная музыкальная заглушка, если ничего не найдено
+    # ЧЕТКИЙ ИСПРАВЛЕННЫЙ АДРЕС ЗАГЛУШКИ:
+    print(f"⚠️ Логотип для '{channel_name}' не найден в сети. Используем музыкальную заглушку.")
     return "https://githubusercontent.com"
+
 
 def load_external_iptvru():
     """Скачивает и парсит каналы из проекта IPTVru"""
