@@ -1,0 +1,46 @@
+name: Auto Update IPTV Playlist with Checker and Logos
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: '0 3 * * *'  # Каждый день в 3 часа ночи автоматическая проверка
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests
+
+    - name: Run checker and logo downloader
+      run: python generate_playlist.py
+
+    - name: Commit and push changes (Playlist & Logos)
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@://github.com"
+        
+        # Добавляем и плейлист, и всю папку с новыми логотипами
+        git add index.m3u logos/* || true
+        
+        if git diff --staged --quiet; then
+          echo "Изменений в плейлисте и логотипах нет."
+        else
+          git commit -m "Автообновление плейлиста: проверка ссылок и загрузка логотипов"
+          git push
+        fi
