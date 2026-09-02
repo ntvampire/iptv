@@ -4,8 +4,7 @@ import requests
 
 INPUT_FILE = "input_channels.txt"
 OUTPUT_FILE = "index.m3u"
-# Используем точную ссылку на EPG от iptvX|one, как вы указали
-EPG_URL = "https://iptvx.one/EPG"
+EPG_URL = "https://iptvx.one"
 
 def slugify(text):
     """Преобразует название канала в безопасное имя для URL пиконов"""
@@ -23,20 +22,43 @@ def check_stream(url):
         pass
     return False
 
-def build_iptvx_logo_url(channel_name):
-    """Формирует прямую ссылку на логотип в базе пиконов iptvX|one по названию канала"""
+def build_iptvx_logo_and_id(channel_name):
+    """
+    Сопоставляет название вашего канала с точной базой данных iptvX|one.
+    Возвращает кортеж: (системный_tvg_id, url_логотипа)
+    """
     name_clean = channel_name.lower().strip()
     
-    # Для каналов семейства Trace жестко задаем фирменный пикон из базы iptvX|one
-    if "trace" in name_clean:
-        return "https://iptvx.one"
+    # Реестр точных совпадений для вашей группы каналов на iptvX|one
+    if "trace urban" in name_clean:
+        tvg_id = "Trace Urban"
+        logo_url = "https://iptvx.one"
+    elif "trace uk" in name_clean:
+        tvg_id = "Trace UK"
+        logo_url = "https://iptvx.one"
+    elif "trace latina" in name_clean:
+        tvg_id = "Trace Latina"
+        logo_url = "https://iptvx.one"
+    elif "trace africa" in name_clean:
+        tvg_id = "Trace Africa"
+        logo_url = "https://iptvx.one"
+    elif "trace muzika" in name_clean:
+        tvg_id = "Trace Muzika"
+        logo_url = "https://iptvx.one"
+    elif "trace brazuca" in name_clean:
+        tvg_id = "Trace Brazuca"
+        # Для Brazuca используется базовый логотип Trace, если основного нет
+        logo_url = "https://iptvx.one"
+    elif "xite" in name_clean:
+        tvg_id = "Xite Hits"
+        logo_url = "https://iptvx.one"
+    else:
+        # Автоматический режим для каналов, импортированных из IPTVru
+        file_slug = slugify(channel_name)
+        tvg_id = channel_name
+        logo_url = f"https://iptvx.one{file_slug}.png" if file_slug else ""
         
-    # Для всех остальных ваших ручных каналов генерируем стандартизированное имя
-    file_slug = slugify(channel_name)
-    if not file_slug:
-        file_slug = "channel"
-        
-    return f"https://iptvx.one{file_slug}.png"
+    return tvg_id, logo_url
 
 def load_external_iptvru_stable():
     """Скачивает и парсит СТАБИЛЬНЫЙ плейлист IPTVru с сохранением оригинальных иконок"""
@@ -74,7 +96,11 @@ def load_external_iptvru_stable():
                 if group_match:
                     group = group_match.group(1).strip()
                 
-                channels[name] = {"group": group, "url": line, "logo": logo, "is_manual": False}
+                # Извлекаем оригинальный tvg-id, если он есть
+                tvg_id_match = re.search(r'tvg-id="([^"]+)"', current_meta, re.IGNORECASE)
+                tvg_id = tvg_id_match.group(1).strip() if tvg_id_match else name
+                
+                channels[name] = {"group": group, "url": line, "logo": logo, "tvg_id": tvg_id, "is_manual": False}
                 current_meta = None
                 
         print(f"📊 Успешно импортировано из IPTVstable: {len(channels)} каналов.")
@@ -86,7 +112,7 @@ def main():
     final_channels = {}
     manual_names = set()
 
-    # 1. Загружаем стабильный список IPTVru (с их оригинальными логотипами)
+    # 1. Загружаем стабильный список IPTVru
     external = load_external_iptvru_stable()
     final_channels.update(external)
 
@@ -101,7 +127,7 @@ def main():
                 parts = [p.strip() for p in line.split("|")]
                 if len(parts) >= 3:
                     name, group, url = parts, parts, parts
-                    final_channels[name] = {"group": group, "url": url, "logo": "", "is_manual": True}
+                    final_channels[name] = {"group": group, "url": url, "logo": "", "tvg_id": "", "is_manual": True}
                     manual_names.add(name)
     else:
         print(f"⚠️ Файл {INPUT_FILE} отсутствует.")
@@ -116,6 +142,7 @@ def main():
         stream_url = data["url"]
         group = data["group"]
         logo_url = data["logo"]
+        tvg_id = data["tvg_id"]
         is_manual = data.get("is_manual", False)
         
         # Проверяем доступность только для ваших ручных ссылок
@@ -123,14 +150,18 @@ def main():
             if not check_stream(stream_url):
                 print(f"❌ Ваш ручной канал [{name}] недоступен. Исключаем.")
                 continue
-            # Формируем прямую ссылку на пикон с серверов iptvX|one
-            logo_url = build_iptvx_logo_url(name)
+            # Формируем правильные ID и URL логотипа для базы iptvX|one
+            tvg_id, logo_url = build_iptvx_logo_and_id(name)
         
-        # Защитная заглушка (если у какого-то канала из IPTVstable нет логотипа)
+        # Страховочный случай, если логотип пуст
         if not logo_url:
             logo_url = "https://iptvx.one"
+            
+        # Защита: если для каналов IPTVru не определился tvg-id, используем имя канала
+        if not tvg_id:
+            tvg_id = name
         
-        playlist_content += f'#EXTINF:-1 tvg-id="{name}" tvg-logo="{logo_url}" group-title="{group}",{name}\n'
+        playlist_content += f'#EXTINF:-1 tvg-id="{tvg_id}" tvg-logo="{logo_url}" group-title="{group}",{name}\n'
         playlist_content += f'{stream_url}\n\n'
         added_count += 1
             
@@ -138,7 +169,7 @@ def main():
         out.write(playlist_content)
         
     print(f"\n🎉 Сборка успешно завершена!")
-    print(f"📊 Итог: В плейлист index.m3u сохранено {added_count} каналов с поддержкой EPG от iptvX|one.")
+    print(f"📊 Итог: В плейлист index.m3u сохранено {added_count} каналов.")
 
 if __name__ == "__main__":
     main()
