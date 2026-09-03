@@ -61,7 +61,7 @@ GROUP_NORMALIZATION = {
     "центральные": "Общие",
     # Развлекательные
     "развлекательные": "Развлекательные",
-     "развлекательные (местные)": "Развлекательные",
+    "развлекательные (местные)": "Развлекательные",
     "развлечение": "Развлекательные",
     "юмор": "Развлекательные",
     "хобби и увлечения": "Развлекательные",
@@ -78,8 +78,20 @@ def normalize_group(group_title):
     """Сводит разнородные названия групп к единой категории."""
     if not group_title:
         return "Общие"
+    
     clean = group_title.strip().lower()
-    return GROUP_NORMALIZATION.get(clean, group_title.strip())
+    
+    # 1. Прямой поиск в словаре
+    if clean in GROUP_NORMALIZATION:
+        return GROUP_NORMALIZATION[clean]
+        
+    # 2. Очистка от технических суффиксов в скобках (например, "Кино (HD)" -> "кино")
+    base_clean = re.sub(r'[\(\[\{].*?[\)\]\}]', '', clean).strip()
+    if base_clean in GROUP_NORMALIZATION:
+        return GROUP_NORMALIZATION[base_clean]
+        
+    # Если точного совпадения нет — возвращаем с заглавной буквы
+    return group_title.strip().capitalize()
 
 def check_stream(url):
     """Проверяет доступность стрима по HEAD/GET."""
