@@ -5,7 +5,7 @@ on:
     branches:
       - main
   schedule:
-    - cron: '43 3 * * *'
+    - cron: '0 3 * * *'
   workflow_dispatch:
 
 jobs:
@@ -28,7 +28,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests
 
-      - name: Generate Playlist
+      - name: Generate Playlist and download logos
         run: python generate_playlist.py
 
       - name: Commit and push changes
@@ -36,9 +36,12 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add index.m3u
+          if [ -d "logos" ]; then
+            git add logos/
+          fi
           if git diff --staged --quiet; then
-            echo "Плейлист не изменился, коммит не требуется."
+            echo "Изменений нет, коммит не требуется."
           else
-            git commit -m "Автообновление плейлиста [skip ci]"
+            git commit -m "Автообновление плейлиста и логотипов [skip ci]"
             git push
           fi
