@@ -1,18 +1,30 @@
 import os
 import re
+import gzip
+import io
+import xml.etree.ElementTree as ET
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import requests
 
 INPUT_FILE = "input_channels.txt"
 OUTPUT_FILE = "index.m3u"
 LOGOS_DIR = "logos"
-EPG_URL = "https://iptvx.one/epg/epg.xml.gz"
+
+# Объединенный EPG: основной русскоязычный + британский/международный от iptv-org
+EPG_URLS = [
+    "https://iptvx.one/epg/epg.xml.gz",
+    "https://iptv-org.github.io/epg/guides/uk/tvguide.co.uk.epg.xml"
+]
+EPG_HEADER_STRING = ",".join(EPG_URLS)
+
+# URL гида iptv-org для выкачивания оригинальных иконок
+IPTV_ORG_EPG_XML = "https://iptv-org.github.io/epg/guides/uk/tvguide.co.uk.epg.xml"
 
 # Внешние плейлисты-источники
 URL_IPTVRU = "https://smolnp.github.io/IPTVru/IPTVstable.m3u8"
 URL_LOGANET = "https://loganettv.github.io/playlists/all.m3u"
 
-# Определение базового пути к логотипам на GitHub Pages
+# Базовый URL репозитория на GitHub Pages
 GITHUB_REPOSITORY = os.getenv("GITHUB_REPOSITORY", "ntvampire/iptv")
 REPO_OWNER, REPO_NAME = GITHUB_REPOSITORY.split("/") if "/" in GITHUB_REPOSITORY else ("ntvampire", "iptv")
 BASE_PAGES_LOGOS_URL = f"https://{REPO_OWNER}.github.io/{REPO_NAME}/logos"
@@ -22,7 +34,6 @@ HEADERS = {
     "Accept": "*/*"
 }
 
-# Каналы-пустышки и сервисные заглушки
 IGNORED_CHANNEL_NAMES = {
     "loganettv all",
     "telegram - t.me/loganettv_original",
@@ -31,36 +42,29 @@ IGNORED_CHANNEL_NAMES = {
     "iptvru"
 }
 
-# Нормализация названий категорий
 GROUP_NORMALIZATION = {
-    # Кино
     "кино": "Кино и сериалы",
     "фильмы": "Кино и сериалы",
     "сериалы": "Кино и сериалы",
     "cinema": "Кино и сериалы",
     "movies": "Кино и сериалы",
     "кино и сериалы (российские)": "Кино и сериалы",
-    # Спорт
     "спорт": "Спорт",
     "спортивные": "Спорт",
     "sports": "Спорт",
     "sport": "Спорт",
-    # Музыка
     "музыка": "Музыка",
     "музыкальные": "Музыка",
     "music": "Музыка",
-    # Детские
     "детские": "Детские",
     "дети": "Детские",
     "мультфильмы": "Детские",
     "kids": "Детские",
     "детям": "Детские",
-    # Новости
     "новости": "Новости",
     "новостные": "Новости",
     "информационные": "Новости",
     "news": "Новости",
-    # Познавательные
     "познавательные": "Познавательные",
     "знания": "Познавательные",
     "культура": "Познавательные",
@@ -69,23 +73,19 @@ GROUP_NORMALIZATION = {
     "документальные": "Познавательные",
     "discovery": "Познавательные",
     "nature": "Познавательные",
-    # Федеральные / Общие
     "общие": "Общие",
     "общественные": "Общие",
     "эфирные": "Общие",
     "федеральные": "Общие",
     "центральные": "Общие",
-    # Развлекательные
     "развлекательные": "Развлекательные",
     "развлекательные (местные)": "Развлекательные",
     "развлечение": "Развлекательные",
     "юмор": "Развлекательные",
     "хобби и увлечения": "Развлекательные",
     "хобби": "Развлекательные",
-    # Релакс
     "релакс": "Релакс",
     "медитативные": "Релакс",
-    # Религия
     "религия": "Религия",
     "христианские": "Религия"
 }
@@ -120,8 +120,40 @@ def check_stream(channel):
         pass
     return None
 
+def fetch_epg_logos_map(epg_url):
+    """Скачивает XMLTV гид и извлекает соответствие tvg-id -> logo URL."""
+    logos_map = {}
+    print(f"[*] Загрузка справочника иконок из EPG ({epg_url})...")
+    try:
+        res = requests.get(epg_url, headers=HEADERS, timeout=20)
+        if res.status_code != 200:
+            print(f"[-] Не удалось загрузить EPG, HTTP код: {res.status_code}")
+            return logos_map
+
+        content = res.content
+        if epg_url.endswith(".gz") or content[:2] == b'\x1f\x8b':
+            content = gzip.decompress(content)
+
+        root = ET.fromstring(content)
+        for channel in root.findall("channel"):
+            ch_id = channel.get("id", "").strip()
+            icon = channel.find("icon")
+            if ch_id and icon is not None:
+                src = icon.get("src", "").strip()
+                if src:
+                    logos_map[ch_id.lower()] = src
+                    # Сохраняем имя канала из тега display-name для дополнительного сопоставления
+                    display_name = channel.find("display-name")
+                    if display_name is not None and display_name.text:
+                        logos_map[display_name.text.strip().lower()] = src
+
+        print(f"[+] Загружено {len(logos_map)} сопоставлений логотипов из EPG.")
+    except Exception as e:
+        print(f"[-] Ошибка при парсинге XMLTV: {e}")
+    return logos_map
+
 def find_local_logo(channel_name, tvg_id):
-    """Ищет файл иконки в папке logos/ с приоритетом точного совпадения."""
+    """Ищет локальную иконку в папке logos/ с приоритетом точного совпадения."""
     if not os.path.exists(LOGOS_DIR):
         return ""
 
@@ -135,7 +167,7 @@ def find_local_logo(channel_name, tvg_id):
 
     files = [f for f in os.listdir(LOGOS_DIR) if f.lower().endswith(".png")]
 
-    # 1. Приоритет: строгое точное совпадение (например, trace-urban.png == trace-urban)
+    # 1. Приоритет строгого совпадения
     for cand in candidates:
         if not cand:
             continue
@@ -144,7 +176,7 @@ def find_local_logo(channel_name, tvg_id):
             if name_no_ext == cand:
                 return f"{BASE_PAGES_LOGOS_URL}/{f}"
 
-    # 2. Вторичный поиск: частичное вхождение, если точного файла нет
+    # 2. Поиск по частичному совпадению
     for cand in candidates:
         if not cand:
             continue
@@ -155,12 +187,12 @@ def find_local_logo(channel_name, tvg_id):
 
     return ""
 
-def load_manual_channels():
+def load_manual_channels(epg_logos_map):
     channels = []
     if not os.path.exists(INPUT_FILE):
         return channels
 
-    print("[*] Чтение кастомных каналов и привязка локальных логотипов...")
+    print("[*] Обработка ручных каналов (приоритет: EPG логотип -> fallback: logos/)...")
     with open(INPUT_FILE, "r", encoding="utf-8") as f:
         for line in f:
             line = line.strip()
@@ -173,14 +205,20 @@ def load_manual_channels():
                 url = parts[2]
                 raw_tvg_id = parts[3] if len(parts) >= 4 and parts[3] else name
 
-                # Поиск логотипа в папке logos/
-                logo_url = find_local_logo(name, raw_tvg_id)
+                # 1. Сначала проверяем наличие оригинального логотипа в EPG
+                clean_id = raw_tvg_id.lower()
+                clean_name = name.lower()
+                logo_url = epg_logos_map.get(clean_id) or epg_logos_map.get(clean_name)
+
+                # 2. Если в EPG нет — берем локальный логотип из logos/
+                if not logo_url:
+                    logo_url = find_local_logo(name, raw_tvg_id)
 
                 channels.append({
                     "name": name,
                     "group": group,
                     "url": url,
-                    "logo": logo_url,
+                    "logo": logo_url or "",
                     "tvg_id": raw_tvg_id,
                     "is_manual": True
                 })
@@ -242,7 +280,7 @@ def merge_external_playlists(iptvru_list, loganet_list):
     return list(merged.values())
 
 def filter_alive_channels(channels, max_workers=30):
-    print(f"[*] Многопоточная проверка {len(channels)} внешних потоков (потоков: {max_workers})...")
+    print(f"[*] Проверка {len(channels)} внешних стримов на доступность...")
     alive_channels = []
     total = len(channels)
     done_count = 0
@@ -255,13 +293,18 @@ def filter_alive_channels(channels, max_workers=30):
             if res:
                 alive_channels.append(res)
             if done_count % 50 == 0 or done_count == total:
-                print(f"  > Проверено: {done_count}/{total} | Активно: {len(alive_channels)}")
+                print(f"  > Проверено: {done_count}/{total} | Доступно: {len(alive_channels)}")
 
     return alive_channels
 
 def main():
-    manual_channels = load_manual_channels()
+    # 1. Загрузка карты иконок из EPG iptv-org
+    epg_logos_map = fetch_epg_logos_map(IPTV_ORG_EPG_XML)
 
+    # 2. Загрузка ручных каналов с привязкой EPG / локальных логотипов
+    manual_channels = load_manual_channels(epg_logos_map)
+
+    # 3. Загрузка и проверка внешних источников
     iptvru_channels = parse_m3u_stream(URL_IPTVRU, "IPTVru")
     loganet_channels = parse_m3u_stream(URL_LOGANET, "LoganetX")
     external_channels = merge_external_playlists(iptvru_channels, loganet_channels)
@@ -269,18 +312,18 @@ def main():
     manual_keys = {ch["name"].strip().lower() for ch in manual_channels}
     filtered_external = [ch for ch in external_channels if ch["name"].strip().lower() not in manual_keys]
 
-    print(f"[*] Проверка доступности ручных стримов ({len(manual_channels)} шт.)...")
+    print(f"[*] Проверка ручных стримов ({len(manual_channels)} каналов)...")
     alive_manual = [ch for ch in manual_channels if check_stream(ch)]
-    
     alive_external = filter_alive_channels(filtered_external, max_workers=30)
 
     final_list = alive_manual + alive_external
 
     if not final_list:
-        print("[-] Ошибка: нет доступных потоков. Запись отменена.")
+        print("[-] Ошибка: нет доступных потоков.")
         return
 
-    content = [f'#EXTM3U x-tvg-url="{EPG_URL}"\n']
+    # 4. Формирование итогового M3U с мульти-EPG заголовком
+    content = [f'#EXTM3U x-tvg-url="{EPG_HEADER_STRING}"\n']
     for ch in final_list:
         tvg_id = ch["tvg_id"] or ch["name"]
         logo = ch.get("logo", "")
@@ -298,10 +341,10 @@ def main():
     with open(OUTPUT_FILE, "w", encoding="utf-8") as out:
         out.write("\n".join(content))
 
-    print(f"\n[+] Сборка завершена успешно!")
-    print(f"    - Ручных стримов добавлено: {len(alive_manual)}")
-    print(f"    - Внешних каналов добавлено: {len(alive_external)}")
-    print(f"    - Итоговый плейлист: {OUTPUT_FILE} ({len(final_list)} каналов)")
+    print(f"\n[+] Сборка плейлиста завершена!")
+    print(f"    - Ручных стримов: {len(alive_manual)}")
+    print(f"    - Внешних каналов: {len(alive_external)}")
+    print(f"    - EPG источники: {EPG_HEADER_STRING}")
 
 if __name__ == "__main__":
     main()
