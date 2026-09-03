@@ -121,7 +121,7 @@ def check_stream(channel):
     return None
 
 def find_local_logo(channel_name, tvg_id):
-    """Ищет файл иконки в папке logos/ по имени канала или tvg-id."""
+    """Ищет файл иконки в папке logos/ с приоритетом точного совпадения."""
     if not os.path.exists(LOGOS_DIR):
         return ""
 
@@ -133,16 +133,26 @@ def find_local_logo(channel_name, tvg_id):
         re.sub(r'[^a-z0-9]+', '_', tvg_id.lower()).strip('_'),
     ]
 
-    files = os.listdir(LOGOS_DIR)
+    files = [f for f in os.listdir(LOGOS_DIR) if f.lower().endswith(".png")]
+
+    # 1. Приоритет: строгое точное совпадение (например, trace-urban.png == trace-urban)
     for cand in candidates:
         if not cand:
             continue
         for f in files:
-            if not f.lower().endswith(".png"):
-                continue
             name_no_ext = os.path.splitext(f)[0].lower()
-            if name_no_ext == cand or cand in name_no_ext:
+            if name_no_ext == cand:
                 return f"{BASE_PAGES_LOGOS_URL}/{f}"
+
+    # 2. Вторичный поиск: частичное вхождение, если точного файла нет
+    for cand in candidates:
+        if not cand:
+            continue
+        for f in files:
+            name_no_ext = os.path.splitext(f)[0].lower()
+            if cand in name_no_ext:
+                return f"{BASE_PAGES_LOGOS_URL}/{f}"
+
     return ""
 
 def load_manual_channels():
