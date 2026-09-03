@@ -2,7 +2,6 @@ Trace Urban | Музыка | https://channels.trace.plus/Traceprod/URBAN_INTER_h
 Trace Urban HD | Музыка | https://amg01131-tracetv-amg01131c1-rakuten-us-1081.playouts.now.amagi.tv/playlist/amg01131-tracetvfast-traceurban-rakutenus/playlist.m3u8 | Trace Urban HD | Trace_Urban_HD.png
 Trace UK | Музыка | https://d2l4tng0wskzvn.cloudfront.net/Trace_GB.m3u8 | Trace UK | Trace_UK.png
 Trace Latina | Музыка | https://amg01131-tracetv-tracelatina-glewed-vtnk7.amagi.tv/playlist.m3u8 | Trace Latina | Trace_Latina.png
-Trace Latina 2 | Музыка | https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg01131-tracetv-tracelatinaes-samsungspain/playlist.m3u8 | Trace Latina | Trace_Latina.png
 Trace Urban Australia | Музыка | https://lightning-traceurban-samsungau.amagi.tv/playlist.m3u8 | Trace Urban | Trace_Urban.png
 Trace Urban France | Музыка | https://channels.trace.plus/Traceprod/URBAN_FR_hd/index.m3u8 | Trace Urban | Trace_Urban.png
 Trace Africa | Музыка | https://channels.trace.plus/Traceprod/AFRICA_EN_ld/index.m3u8 | Trace Africa | Trace_Africa.png
