@@ -5,7 +5,7 @@ import requests
 INPUT_FILE = "input_channels.txt"
 OUTPUT_FILE = "index.m3u"
 EPG_URL = "https://iptvx.one/epg/epg.xml.gz"
-IPTVRU_SOURCE_URL = "https://smolnp.github.io/IPTVru/IPTVstable.m3u8"
+EXTERNAL_SOURCE_URL = "https://loganettv.github.io/playlists/all.m3u"
 PICONS_BASE_URL = "https://iptvx.one/picons"
 
 HEADERS = {
@@ -60,7 +60,6 @@ def load_manual_channels():
                 group = parts[1]
                 url = parts[2]
                 
-                # Необязательные поля: tvg-id и логотип
                 raw_tvg_id = parts[3] if len(parts) >= 4 and parts[3] else name
                 raw_logo = parts[4] if len(parts) >= 5 else ""
 
@@ -79,14 +78,14 @@ def load_manual_channels():
                     print("НЕ ДОСТУПЕН (пропущен)")
     return channels
 
-def load_external_iptvru():
-    """Скачивает и парсит внешний базовый плейлист IPTVru."""
+def load_external_playlist():
+    """Скачивает и парсит внешний базовый плейлист LoganetX."""
     channels = []
-    print(f"[*] Загрузка внешнего плейлиста: {IPTVRU_SOURCE_URL} ...")
+    print(f"[*] Загрузка внешнего плейлиста: {EXTERNAL_SOURCE_URL} ...")
     try:
-        res = requests.get(IPTVRU_SOURCE_URL, headers=HEADERS, timeout=15)
+        res = requests.get(EXTERNAL_SOURCE_URL, headers=HEADERS, timeout=15)
         if res.status_code != 200:
-            print(f"[-] Ошибка загрузки IPTVru: статус {res.status_code}")
+            print(f"[-] Ошибка загрузки LoganetX: статус {res.status_code}")
             return channels
 
         lines = res.text.splitlines()
@@ -119,15 +118,15 @@ def load_external_iptvru():
                 })
                 current_meta = None
 
-        print(f"[+] Загружено каналов из IPTVru: {len(channels)}")
+        print(f"[+] Загружено каналов из LoganetX: {len(channels)}")
     except Exception as e:
-        print(f"[-] Исключение при загрузке IPTVru: {e}")
+        print(f"[-] Исключение при загрузке внешнего плейлиста: {e}")
 
     return channels
 
 def main():
     manual_channels = load_manual_channels()
-    external_channels = load_external_iptvru()
+    external_channels = load_external_playlist()
     all_channels = manual_channels + external_channels
 
     if not all_channels:
