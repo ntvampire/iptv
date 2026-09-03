@@ -85,17 +85,8 @@ GROUP_NORMALIZATION = {
     "христианские": "Религия"
 }
 
-def is_blacklisted(channel_name):
-    """Проверяет, является ли канал пустышкой или рекламой."""
-    clean_name = channel_name.strip().lower()
-    if clean_name in IGNORED_CHANNEL_NAMES:
-        return True
-    for ignored in IGNORED_CHANNEL_NAMES:
-        if ignored in clean_name:
-            return True
-    return False
-
 def normalize_group(group_title):
+    """Сводит разнородные названия групп к единой категории."""
     if not group_title:
         return "Общие"
     clean = group_title.strip().lower()
@@ -105,6 +96,16 @@ def normalize_group(group_title):
     if base_clean in GROUP_NORMALIZATION:
         return GROUP_NORMALIZATION[base_clean]
     return group_title.strip().capitalize()
+    
+def is_blacklisted(channel_name):
+    """Проверяет, является ли канал пустышкой или рекламой."""
+    clean_name = channel_name.strip().lower()
+    if clean_name in IGNORED_CHANNEL_NAMES:
+        return True
+    for ignored in IGNORED_CHANNEL_NAMES:
+        if ignored in clean_name:
+            return True
+    return False
 
 def check_stream(channel):
     """Проверяет доступность стрима потока по HEAD и GET."""
