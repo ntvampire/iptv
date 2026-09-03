@@ -12,9 +12,6 @@ https://d2l4tng0wskzvn.cloudfront.net/Trace_GB.m3u8
 #EXTINF:-1 tvg-id="Trace Latina" tvg-logo="https://iptvx.one/picons/Trace_Latina.png" group-title="Музыка",Trace Latina
 https://amg01131-tracetv-tracelatina-glewed-vtnk7.amagi.tv/playlist.m3u8
 
-#EXTINF:-1 tvg-id="Trace Latina" tvg-logo="https://iptvx.one/picons/Trace_Latina.png" group-title="Музыка",Trace Latina 2
-https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg01131-tracetv-tracelatinaes-samsungspain/playlist.m3u8
-
 #EXTINF:-1 tvg-id="Trace Urban" tvg-logo="https://iptvx.one/picons/Trace_Urban.png" group-title="Музыка",Trace Urban Australia
 https://lightning-traceurban-samsungau.amagi.tv/playlist.m3u8
 
