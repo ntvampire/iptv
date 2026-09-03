@@ -6,7 +6,6 @@ import requests
 INPUT_FILE = "input_channels.txt"
 OUTPUT_FILE = "index.m3u"
 EPG_URL = "https://iptvx.one/epg/epg.xml.gz"
-PICONS_BASE_URL = "https://iptvx.one/picons"
 
 # Источники внешних плейлистов
 URL_IPTVRU = "https://smolnp.github.io/IPTVru/IPTVstable.m3u8"
@@ -17,7 +16,7 @@ HEADERS = {
     "Accept": "*/*"
 }
 
-# Каналы-пустышки, промо-заглушки и информационные строки для полного игнорирования
+# Каналы-пустышки и рекламные заглушки для удаления
 IGNORED_CHANNEL_NAMES = {
     "loganettv all",
     "telegram - t.me/loganettv_original",
@@ -85,8 +84,16 @@ GROUP_NORMALIZATION = {
     "христианские": "Религия"
 }
 
+def is_blacklisted(channel_name):
+    clean_name = channel_name.strip().lower()
+    if clean_name in IGNORED_CHANNEL_NAMES:
+        return True
+    for ignored in IGNORED_CHANNEL_NAMES:
+        if ignored in clean_name:
+            return True
+    return False
+
 def normalize_group(group_title):
-    """Сводит разнородные названия групп к единой категории."""
     if not group_title:
         return "Общие"
     clean = group_title.strip().lower()
@@ -96,25 +103,13 @@ def normalize_group(group_title):
     if base_clean in GROUP_NORMALIZATION:
         return GROUP_NORMALIZATION[base_clean]
     return group_title.strip().capitalize()
-    
-def is_blacklisted(channel_name):
-    """Проверяет, является ли канал пустышкой или рекламой."""
-    clean_name = channel_name.strip().lower()
-    if clean_name in IGNORED_CHANNEL_NAMES:
-        return True
-    for ignored in IGNORED_CHANNEL_NAMES:
-        if ignored in clean_name:
-            return True
-    return False
 
 def check_stream(channel):
-    """Проверяет доступность стрима потока по HEAD и GET."""
     url = channel["url"]
     try:
         res = requests.head(url, headers=HEADERS, timeout=4, allow_redirects=True)
         if res.status_code in (200, 302):
             return channel
-
         res = requests.get(url, headers=HEADERS, timeout=4, stream=True)
         if res.status_code == 200:
             return channel
@@ -122,16 +117,8 @@ def check_stream(channel):
         pass
     return None
 
-def resolve_logo_url(logo_field, fallback_name):
-    if not logo_field:
-        slug = re.sub(r'[\s-]+', '_', re.sub(r'[^a-zA-Z0-9\s_-]', '', fallback_name).strip())
-        return f"{PICONS_BASE_URL}/{slug}.png" if slug else ""
-    if logo_field.startswith("http://") or logo_field.startswith("https://"):
-        return logo_field
-    file_name = logo_field if logo_field.endswith(".png") else f"{logo_field}.png"
-    return f"{PICONS_BASE_URL}/{file_name}"
-
 def load_manual_channels():
+    """Загружает кастомные каналы: tvg-logo оставляем пустым для автоподхвата из EPG."""
     channels = []
     if not os.path.exists(INPUT_FILE):
         return channels
@@ -147,19 +134,19 @@ def load_manual_channels():
                 group = normalize_group(parts[1])
                 url = parts[2]
                 raw_tvg_id = parts[3] if len(parts) >= 4 and parts[3] else name
-                raw_logo = parts[4] if len(parts) >= 5 else ""
 
                 channels.append({
                     "name": name,
                     "group": group,
                     "url": url,
-                    "logo": resolve_logo_url(raw_logo, name),
+                    "logo": "",  # пусто: плеер берет логотип прямо из XMLTV EPG
                     "tvg_id": raw_tvg_id,
                     "is_manual": True
                 })
     return channels
 
 def parse_m3u_stream(source_url, source_name):
+    """Парсит внешний плейлист, сохраняя оригинальные tvg-id и tvg-logo."""
     channels = []
     print(f"[*] Скачивание: {source_name} ...")
     try:
@@ -179,19 +166,18 @@ def parse_m3u_stream(source_url, source_name):
             elif (line.startswith("http://") or line.startswith("https://")) and current_meta:
                 name = current_meta.split(",")[-1].strip() if "," in current_meta else "Unknown"
 
-                # Фильтрация пустышек и рекламных заглушек
                 if is_blacklisted(name):
                     current_meta = None
                     continue
 
-                logo_match = re.search(r'tvg-logo="([^"]+)"', current_meta, re.IGNORECASE)
+                logo_match = re.search(r'tvg-logo="([^"]*)"', current_meta, re.IGNORECASE)
                 logo = logo_match.group(1).strip() if logo_match else ""
 
-                group_match = re.search(r'group-title="([^"]+)"', current_meta, re.IGNORECASE)
+                group_match = re.search(r'group-title="([^"]*)"', current_meta, re.IGNORECASE)
                 raw_group = group_match.group(1).strip() if group_match else "Общие"
                 group = normalize_group(raw_group)
 
-                tvg_id_match = re.search(r'tvg-id="([^"]+)"', current_meta, re.IGNORECASE)
+                tvg_id_match = re.search(r'tvg-id="([^"]*)"', current_meta, re.IGNORECASE)
                 tvg_id = tvg_id_match.group(1).strip() if tvg_id_match else name
 
                 channels.append({
@@ -208,6 +194,7 @@ def parse_m3u_stream(source_url, source_name):
     return channels
 
 def merge_external_playlists(iptvru_list, loganet_list):
+    """Объединяет Loganet и IPTVru с сохранением оригинальных тегов IPTVru при совпадениях."""
     merged = {}
     for ch in loganet_list:
         merged[ch["name"].strip().lower()] = ch
@@ -216,7 +203,7 @@ def merge_external_playlists(iptvru_list, loganet_list):
     return list(merged.values())
 
 def filter_alive_channels(channels, max_workers=30):
-    print(f"[*] Старт многопоточной проверки {len(channels)} каналов (потоков: {max_workers})...")
+    print(f"[*] Старт многопоточной проверки {len(channels)} внешних каналов...")
     alive_channels = []
     total = len(channels)
     done_count = 0
@@ -253,23 +240,31 @@ def main():
         print("[-] Ошибка: все потоки недоступны. Файл не перезаписан.")
         return
 
+    # Запись в index.m3u
     content = [f'#EXTM3U x-tvg-url="{EPG_URL}"\n']
     for ch in final_list:
         tvg_id = ch["tvg_id"] or ch["name"]
-        logo = ch["logo"]
+        logo = ch.get("logo", "")
         group = ch["group"]
         name = ch["name"]
         url = ch["url"]
-        content.append(f'#EXTINF:-1 tvg-id="{tvg_id}" tvg-logo="{logo}" group-title="{group}",{name}\n{url}\n')
+
+        # Если логотип есть (внешние каналы) — прописываем tvg-logo.
+        # Если логотипа нет (ручные каналы) — не добавляем пустой атрибут, плеер свяжет иконку по tvg-id.
+        if logo:
+            extinf = f'#EXTINF:-1 tvg-id="{tvg_id}" tvg-logo="{logo}" group-title="{group}",{name}\n{url}\n'
+        else:
+            extinf = f'#EXTINF:-1 tvg-id="{tvg_id}" group-title="{group}",{name}\n{url}\n'
+            
+        content.append(extinf)
 
     with open(OUTPUT_FILE, "w", encoding="utf-8") as out:
         out.write("\n".join(content))
 
     print(f"\n[+] Генерация завершена успешно!")
-    print(f"    - Ручных активных: {len(alive_manual)} из {len(manual_channels)}")
-    print(f"    - Внешних рабочих: {len(alive_external)} из {len(filtered_external)}")
-    print(f"    - Итого в {OUTPUT_FILE}: {len(final_list)} каналов")
+    print(f"    - Ручных каналов: {len(alive_manual)}")
+    print(f"    - Внешних каналов: {len(alive_external)}")
+    print(f"    - Всего в {OUTPUT_FILE}: {len(final_list)}")
 
 if __name__ == "__main__":
     main()
-    
