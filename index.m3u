@@ -9,20 +9,35 @@ https://amg01131-tracetv-amg01131c1-rakuten-us-1081.playouts.now.amagi.tv/playli
 #EXTINF:-1 tvg-id="Trace UK" tvg-logo="https://iptvx.one/picons/Trace_UK.png" group-title="Музыка",Trace UK
 https://d2l4tng0wskzvn.cloudfront.net/Trace_GB.m3u8
 
-#EXTINF:-1 tvg-id="Trace Latina" tvg-logo="https://iptvx.one/picons/Trace_Latina.png" group-title="Музыка",Trace Latina
-https://amg01131-tracetv-tracelatina-glewed-vtnk7.amagi.tv/playlist.m3u8
-
 #EXTINF:-1 tvg-id="Trace Urban" tvg-logo="https://iptvx.one/picons/Trace_Urban.png" group-title="Музыка",Trace Urban Australia
 https://lightning-traceurban-samsungau.amagi.tv/playlist.m3u8
 
 #EXTINF:-1 tvg-id="Trace Urban" tvg-logo="https://iptvx.one/picons/Trace_Urban.png" group-title="Музыка",Trace Urban France
 https://channels.trace.plus/Traceprod/URBAN_FR_hd/index.m3u8
 
+#EXTINF:-1 tvg-id="Trace Latina" tvg-logo="https://iptvx.one/picons/Trace_Latina.png" group-title="Музыка",Trace Latina
+https://amg01131-tracetv-tracelatina-glewed-vtnk7.amagi.tv/playlist.m3u8
+
+#EXTINF:-1 tvg-id="Trace Latina" tvg-logo="https://iptvx.one/picons/Trace_Latina.png" group-title="Музыка",Trace Latina España
+https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg01131-tracetv-tracelatinaes-samsungspain/playlist.m3u8
+
 #EXTINF:-1 tvg-id="Trace Africa" tvg-logo="https://iptvx.one/picons/Trace_Africa.png" group-title="Музыка",Trace Africa
 https://channels.trace.plus/Traceprod/AFRICA_EN_ld/index.m3u8
 
 #EXTINF:-1 tvg-id="Trace Muzika" tvg-logo="https://iptvx.one/picons/Trace_Muzik.png" group-title="Музыка",Trace Muzika
 https://channels.trace.plus/Traceprod/MUZIKA_hd/index.m3u8
+
+#EXTINF:-1 tvg-id="Trace Vanilla" tvg-logo="https://iptvx.one/picons/Trace_Vanilla.png" group-title="Музыка",Trace Vanilla
+https://channels.trace.plus/Traceprod/VANILLA_hd/index.m3u8
+
+#EXTINF:-1 tvg-id="Trace Naija" tvg-logo="https://iptvx.one/picons/Trace_Naija.png" group-title="Музыка",Trace Naija
+https://channels.trace.plus/Traceprod/NAIJA_hd/index.m3u8
+
+#EXTINF:-1 tvg-id="Trace Mziki" tvg-logo="https://iptvx.one/picons/Trace_Mziki.png" group-title="Музыка",Trace Mziki
+https://channels.trace.plus/Traceprod/MZIKI_hd/index.m3u8
+
+#EXTINF:-1 tvg-id="Trace Jama" tvg-logo="https://iptvx.one/picons/Trace_Jama.png" group-title="Музыка",Trace Jama
+https://channels.trace.plus/Traceprod/JAMA_hd/index.m3u8
 
 #EXTINF:-1 tvg-id="XITE Hits" tvg-logo="https://iptvx.one/picons/XITE_Hits.png" group-title="Музыка",XITE Hits UK
 https://amg01243-xitenetworksint-hitsuk-samsunguk-mvovq.amagi.tv/playlist/amg01243-xitenetworksint-hitsuk-samsunguk/playlist.m3u8
