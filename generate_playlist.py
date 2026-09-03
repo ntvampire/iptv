@@ -6,31 +6,15 @@ INPUT_FILE = "input_channels.txt"
 OUTPUT_FILE = "index.m3u"
 EPG_URL = "https://iptvx.one/epg/epg.xml.gz"
 IPTVRU_SOURCE_URL = "https://smolnp.github.io/IPTVru/IPTVstable.m3u8"
+PICONS_BASE_URL = "https://iptvx.one/picons"
 
-# Заголовки браузера для обхода защиты Amagi, Cloudfront и Trace CDN
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
     "Accept": "*/*"
 }
 
-# Эталонное сопоставление под ваш обновленный список каналов:
-# "Название в input_channels.txt": ("tvg-id для EPG", "имя_файла_на_iptvx.png")
-IPTVX_MAPPING = {
-    "Trace Urban": ("Trace Urban", "Trace_Urban.png"),
-    "Trace Urban HD": ("Trace Urban HD", "Trace_Urban_HD.png"),
-    "Trace UK": ("Trace UK", "Trace_UK.png"),
-    "Trace Latina": ("Trace Latina", "Trace_Latina.png"),
-    "Trace Latina 2": ("Trace Latina", "Trace_Latina.png"),       # зеркало/второй поток использует EPG и пикон Trace Latina
-    "Trace Urban Australia": ("Trace Urban", "Trace_Urban.png"),
-    "Trace Urban France": ("Trace Urban", "Trace_Urban.png"),
-    "Trace Africa": ("Trace Africa", "Trace_Africa.png"),
-    "Trace Muzika": ("Trace Muzika", "Trace_Muzik.png"),
-    "Trace Brazuca": ("Trace Brazuca", "Trace_Brazuca.png"),
-    "XITE Hits UK": ("XITE Hits", "XITE_Hits.png"),
-}
-
 def check_stream(url):
-    """Проверяет доступность стрима: сначала через легкий HEAD, затем GET."""
+    """Проверяет доступность стрима: сначала через HEAD, затем потоковый GET."""
     try:
         res = requests.head(url, headers=HEADERS, timeout=5, allow_redirects=True)
         if res.status_code in (200, 302):
@@ -42,18 +26,22 @@ def check_stream(url):
         pass
     return False
 
-def get_iptvx_meta(channel_name):
-    """Возвращает корректный tvg-id и URL пикона с iptvX|one."""
-    if channel_name in IPTVX_MAPPING:
-        tvg_id, picon_file = IPTVX_MAPPING[channel_name]
-        return tvg_id, f"https://iptvx.one/picons/{picon_file}"
+def resolve_logo_url(logo_field, fallback_name):
+    """Преобразует имя файла пикона или полный URL в готовую рабочую ссылку."""
+    if not logo_field:
+        slug = re.sub(r'[\s-]+', '_', re.sub(r'[^a-zA-Z0-9\s_-]', '', fallback_name).strip())
+        return f"{PICONS_BASE_URL}/{slug}.png" if slug else ""
     
-    # Резервный расчет для сторонних названий
-    slug = re.sub(r'[\s-]+', '_', re.sub(r'[^a-zA-Z0-9\s_-]', '', channel_name).strip())
-    return channel_name, f"https://iptvx.one/picons/{slug}.png" if slug else ""
+    # Если передана полная ссылка (http/https)
+    if logo_field.startswith("http://") or logo_field.startswith("https://"):
+        return logo_field
+    
+    # Если передано только имя файла (например, Trace_Urban.png)
+    file_name = logo_field if logo_field.endswith(".png") else f"{logo_field}.png"
+    return f"{PICONS_BASE_URL}/{file_name}"
 
 def load_manual_channels():
-    """Загружает кастомные каналы из input_channels.txt с проверкой работоспособности."""
+    """Загружает кастомные каналы из input_channels.txt с поддержкой 3, 4 или 5 параметров."""
     channels = []
     if not os.path.exists(INPUT_FILE):
         print(f"[-] Файл {INPUT_FILE} не найден.")
@@ -65,18 +53,26 @@ def load_manual_channels():
             line = line.strip()
             if not line or line.startswith("#"):
                 continue
+
             parts = [p.strip() for p in line.split("|")]
             if len(parts) >= 3:
-                name, group, url = parts[0], parts[1], parts[2]
+                name = parts[0]
+                group = parts[1]
+                url = parts[2]
+                
+                # Необязательные поля: tvg-id и логотип
+                raw_tvg_id = parts[3] if len(parts) >= 4 and parts[3] else name
+                raw_logo = parts[4] if len(parts) >= 5 else ""
+
                 print(f"  > Проверка: {name} ... ", end="", flush=True)
                 if check_stream(url):
-                    tvg_id, logo_url = get_iptvx_meta(name)
+                    logo_url = resolve_logo_url(raw_logo, name)
                     channels.append({
                         "name": name,
                         "group": group,
                         "url": url,
                         "logo": logo_url,
-                        "tvg_id": tvg_id
+                        "tvg_id": raw_tvg_id
                     })
                     print("OK")
                 else:
@@ -123,7 +119,7 @@ def load_external_iptvru():
                 })
                 current_meta = None
 
-        print(f"[+] Успешно загружено каналов из IPTVru: {len(channels)}")
+        print(f"[+] Загружено каналов из IPTVru: {len(channels)}")
     except Exception as e:
         print(f"[-] Исключение при загрузке IPTVru: {e}")
 
