@@ -1,8 +1,8 @@
 Trace Urban | Музыка | https://channels.trace.plus/Traceprod/URBAN_INTER_hd/index.m3u8 | Trace Urban
-Trace Urban HD | Музыка | https://amg01131-tracetv-amg01131c1-rakuten-us-1081.playouts.now.amagi.tv/playlist/amg01131-tracetvfast-traceurban-rakutenus/playlist.m3u8 | Trace Urban HD
+Trace Urban HD | Музыка | https://amg01131-tracetv-amg01131c1-rakuten-us-1081.playouts.now.amagi.tv/playlist/amg01131-tracetvfast-traceurban-rakutenus/playlist.m3u8 | Trace Urban
 Trace UK | Музыка | https://d2l4tng0wskzvn.cloudfront.net/Trace_GB.m3u8 | Trace UK
-Trace Urban Australia | Музыка | https://lightning-traceurban-samsungau.amagi.tv/playlist.m3u8 | Trace Urban
-Trace Urban France | Музыка | https://channels.trace.plus/Traceprod/URBAN_FR_hd/index.m3u8 | Trace Urban
+Trace Urban Australia | Музыка | https://lightning-traceurban-samsungau.amagi.tv/playlist.m3u8 | Trace Urban Australia
+Trace Urban France | Музыка | https://channels.trace.plus/Traceprod/URBAN_FR_hd/index.m3u8 | Trace Urban France
 Trace Latina | Музыка | https://amg01131-tracetv-tracelatina-glewed-vtnk7.amagi.tv/playlist.m3u8 | Trace Latina
 Trace Latina España | Музыка | https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg01131-tracetv-tracelatinaes-samsungspain/playlist.m3u8 | Trace Latina
 Trace Africa | Музыка | https://channels.trace.plus/Traceprod/AFRICA_EN_ld/index.m3u8 | Trace Africa
