@@ -1,9 +1,9 @@
 #EXTM3U x-tvg-url="https://iptvx.one/epg/epg.xml.gz"
 
-#EXTINF:-1 tvg-id="Trace Urban" tvg-logo="https://iptvx.one/picons/Trace_Urban.png" group-title="Музыка",Trace Urban HD
+#EXTINF:-1 tvg-id="Trace Urban" tvg-logo="https://iptvx.one/picons/Trace_Urban.png" group-title="Музыка",Trace Urban
 https://channels.trace.plus/Traceprod/URBAN_INTER_hd/index.m3u8
 
-#EXTINF:-1 tvg-id="Trace Urban" tvg-logo="https://iptvx.one/picons/Trace_Urban.png" group-title="Музыка",Trace Urban
+#EXTINF:-1 tvg-id="Trace Urban" tvg-logo="https://iptvx.one/picons/Trace_Urban.png" group-title="Музыка",Trace Urban HD
 https://amg01131-tracetv-amg01131c1-rakuten-us-1081.playouts.now.amagi.tv/playlist/amg01131-tracetvfast-traceurban-rakutenus/playlist.m3u8
 
 #EXTINF:-1 tvg-id="Trace UK" tvg-logo="https://iptvx.one/picons/Trace_UK.png" group-title="Музыка",Trace UK
@@ -12,7 +12,7 @@ https://d2l4tng0wskzvn.cloudfront.net/Trace_GB.m3u8
 #EXTINF:-1 tvg-id="Trace Latina" tvg-logo="https://iptvx.one/picons/Trace_Latina.png" group-title="Музыка",Trace Latina
 https://amg01131-tracetv-tracelatina-glewed-vtnk7.amagi.tv/playlist.m3u8
 
-#EXTINF:-1 tvg-id="Trace Latina" tvg-logo="https://iptvx.one/picons/Trace_Latina.png" group-title="Музыка",Trace Latina Espana
+#EXTINF:-1 tvg-id="Trace Latina" tvg-logo="https://iptvx.one/picons/Trace_Latina.png" group-title="Музыка",Trace Latina 2
 https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg01131-tracetv-tracelatinaes-samsungspain/playlist.m3u8
 
 #EXTINF:-1 tvg-id="Trace Urban" tvg-logo="https://iptvx.one/picons/Trace_Urban.png" group-title="Музыка",Trace Urban Australia
