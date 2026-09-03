@@ -1,4 +1,4 @@
-name: Auto Update IPTV Playlist with Checker and Logos
+name: Auto Update IPTV Playlist
 
 on:
   push:
@@ -6,6 +6,7 @@ on:
       - main
   schedule:
     - cron: '0 3 * * *'
+  workflow_dispatch:
 
 jobs:
   build:
@@ -14,37 +15,30 @@ jobs:
       contents: write
 
     steps:
-    # Используем актуальные версии экшенов, совместимые с Node 24
-    - name: Checkout repository
-      uses: actions/checkout@v4.2.0 
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v5.3.0
-      with:
-        python-version: '3.11'
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install requests
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
 
-    - name: Run checker and logo downloader
-      run: python generate_playlist.py
+      - name: Generate Playlist
+        run: python generate_playlist.py
 
-    - name: Commit and push changes (Playlist & Logos)
-      run: |
-        git config --global user.name "github-actions[bot]"
-        git config --global user.email "github-actions[bot]@://github.com"
-        
-        git add index.m3u
-        # Добавляем новые логотипы, если папка существует и наполнена
-        if [ -d "logos" ]; then
-          git add logos/
-        fi
-        
-        if git diff --staged --quiet; then
-          echo "Изменений в плейлисте и логотипах нет."
-        else
-          git commit -m "Автообновление плейлиста: импорт из IPTVru, проверка ссылок и логотипы"
-          git push
-        fi
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add index.m3u
+          if git diff --staged --quiet; then
+            echo "Плейлист не изменился, коммит не требуется."
+          else
+            git commit -m "Автообновление плейлиста [skip ci]"
+            git push
+          fi
