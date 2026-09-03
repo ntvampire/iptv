@@ -3,7 +3,7 @@
 #EXTINF:-1 tvg-id="Trace Urban" tvg-logo="https://iptvx.one/picons/Trace_Urban.png" group-title="Музыка",Trace Urban
 https://channels.trace.plus/Traceprod/URBAN_INTER_hd/index.m3u8
 
-#EXTINF:-1 tvg-id="Trace Urban" tvg-logo="https://iptvx.one/picons/Trace_Urban.png" group-title="Музыка",Trace Urban HD
+#EXTINF:-1 tvg-id="Trace Urban HD" tvg-logo="https://iptvx.one/picons/Trace_Urban_HD.png" group-title="Музыка",Trace Urban HD
 https://amg01131-tracetv-amg01131c1-rakuten-us-1081.playouts.now.amagi.tv/playlist/amg01131-tracetvfast-traceurban-rakutenus/playlist.m3u8
 
 #EXTINF:-1 tvg-id="Trace UK" tvg-logo="https://iptvx.one/picons/Trace_UK.png" group-title="Музыка",Trace UK
@@ -24,10 +24,10 @@ https://channels.trace.plus/Traceprod/URBAN_FR_hd/index.m3u8
 #EXTINF:-1 tvg-id="Trace Africa" tvg-logo="https://iptvx.one/picons/Trace_Africa.png" group-title="Музыка",Trace Africa
 https://channels.trace.plus/Traceprod/AFRICA_EN_ld/index.m3u8
 
-#EXTINF:-1 tvg-id="Trace Muzika" tvg-logo="https://iptvx.one/picons/Trace_Muzika.png" group-title="Музыка",Trace Muzika
+#EXTINF:-1 tvg-id="Trace Muzika" tvg-logo="https://iptvx.one/picons/Trace_Muzik.png" group-title="Музыка",Trace Muzika
 https://channels.trace.plus/Traceprod/MUZIKA_hd/index.m3u8
 
-#EXTINF:-1 tvg-id="Xite Hits" tvg-logo="https://iptvx.one/picons/Xite_Hits.png" group-title="Музыка",XITE Hits UK
+#EXTINF:-1 tvg-id="XITE Hits" tvg-logo="https://iptvx.one/picons/XITE_Hits.png" group-title="Музыка",XITE Hits UK
 https://amg01243-xitenetworksint-hitsuk-samsunguk-mvovq.amagi.tv/playlist/amg01243-xitenetworksint-hitsuk-samsunguk/playlist.m3u8
 
 #EXTINF:-1 tvg-id="pervy" tvg-logo="https://iptvx.one/picons/pervy.png" group-title="Общественные",Первый канал HD
@@ -698,4 +698,3 @@ https://rt-ural-nbk-htlive.cdn.ngenix.net/hls/CH_R04_OTT_YAMREG_URAL_YNF/variant
 
 #EXTINF:-1 tvg-id="sochi-live" tvg-logo="https://iptvx.one/picons/sochi-live.png" group-title="Медитативные",Sochi Live
 http://serv30.vintera.tv:8081/sochi/sochi_stream/playlist.m3u8
-
