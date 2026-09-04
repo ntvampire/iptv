@@ -10,15 +10,14 @@ INPUT_FILE = "input_channels.txt"
 OUTPUT_FILE = "index.m3u"
 LOGOS_DIR = "logos"
 
-# Multi-EPG sources: Russian primary + UK/International from iptv-org
+# Multi-EPG sources: Russian primary + International iptv-org feeds
 EPG_URLS = [
     "https://iptvx.one/epg/epg.xml.gz",
-    "https://iptv-org.github.io/epg/guides/uk/tvguide.co.uk.epg.xml"
+    "https://iptv-org.github.io/epg/guides/uk/tvguide.co.uk.epg.xml",
+    "https://iptv-org.github.io/epg/guides/fr/programme-tv.net.epg.xml",
+    "https://iptv-org.github.io/epg/guides/es/movistarplus.es.epg.xml"
 ]
 EPG_HEADER_STRING = ",".join(EPG_URLS)
-
-# Primary guide URL for extracting official provider logos
-IPTV_ORG_EPG_XML = "https://iptv-org.github.io/epg/guides/uk/tvguide.co.uk.epg.xml"
 
 # External playlist endpoints
 URL_IPTVRU = "https://smolnp.github.io/IPTVru/IPTVstable.m3u8"
@@ -129,8 +128,8 @@ def check_stream(channel):
         pass
     return None
 
-def fetch_epg_logos_map(epg_url):
-    """Download XMLTV guide and create tvg-id/display-name to logo map."""
+def fetch_single_epg_logos(epg_url):
+    """Download single XMLTV guide and extract logo map."""
     logos_map = {}
     print(f"[*] Downloading EPG logo index ({epg_url})...")
     try:
@@ -155,10 +154,21 @@ def fetch_epg_logos_map(epg_url):
                     if display_name is not None and display_name.text:
                         logos_map[display_name.text.strip().lower()] = src
 
-        print(f"[+] Loaded {len(logos_map)} logo associations from EPG.")
+        print(f"[+] Loaded {len(logos_map)} logo associations from {epg_url}.")
     except Exception as e:
-        print(f"[-] XMLTV parse error: {e}")
+        print(f"[-] XMLTV parse error for {epg_url}: {e}")
     return logos_map
+
+def fetch_all_epg_logos(epg_urls):
+    """Aggregate logos from international EPG guides (skipping heavy Russian GZ)."""
+    combined_map = {}
+    for url in epg_urls:
+        if "iptvx.one" in url:
+            continue
+        logos = fetch_single_epg_logos(url)
+        combined_map.update(logos)
+    print(f"[+] Total unique EPG logo mappings: {len(combined_map)}")
+    return combined_map
 
 def find_local_logo(channel_name, tvg_id):
     """Search for local logo file in logos/ directory with exact match priority."""
@@ -213,7 +223,7 @@ def load_manual_channels(epg_logos_map):
                 url = parts[2]
                 raw_tvg_id = parts[3] if len(parts) >= 4 and parts[3] else name
 
-                # Check EPG map first
+                # Check multi-source EPG logo map
                 clean_id = raw_tvg_id.lower()
                 clean_name = name.lower()
                 logo_url = epg_logos_map.get(clean_id) or epg_logos_map.get(clean_name)
@@ -312,13 +322,13 @@ def filter_alive_channels(channels, max_workers=30):
     return alive_channels
 
 def main():
-    # 1. Fetch EPG logo dictionary
-    epg_logos_map = fetch_epg_logos_map(IPTV_ORG_EPG_XML)
+    # 1. Fetch aggregated EPG logos from multiple international guides
+    epg_logos_map = fetch_all_epg_logos(EPG_URLS)
 
-    # 2. Parse manual channels
+    # 2. Parse manual channels with multi-EPG logo resolution and local fallback
     manual_channels = load_manual_channels(epg_logos_map)
 
-    # 3. Parse and merge external sources (excluded categories filtered out)
+    # 3. Parse and merge external sources (Relax/Religion filtered out)
     iptvru_channels = parse_m3u_stream(URL_IPTVRU, "IPTVru")
     loganet_channels = parse_m3u_stream(URL_LOGANET, "LoganetX")
     external_channels = merge_external_playlists(iptvru_channels, loganet_channels)
@@ -362,4 +372,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
