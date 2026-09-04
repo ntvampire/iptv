@@ -68,12 +68,25 @@ EXCLUDED_EXTERNAL_GROUPS = {
     "христианские",
     "религиозные",
     "православные",
+    "religion",
     "местные",
-    "региональные",
-    "religion"
+    "региональные"
 }
 
-# Category normalization map (Relax and Religion removed as redundant)
+# Desired output order of categories (modify order as needed)
+CATEGORY_ORDER = [
+    "Общие",
+    "Кино и сериалы",
+    "Детские",
+    "Музыка",
+    "Развлекательные",
+    "Познавательные",
+    "Спорт",
+    "Новости"
+]
+CATEGORY_INDEX_MAP = {cat: idx for idx, cat in enumerate(CATEGORY_ORDER)}
+
+# Category normalization map
 GROUP_NORMALIZATION = {
     "кино": "Кино и сериалы",
     "фильмы": "Кино и сериалы",
@@ -205,7 +218,6 @@ def find_local_logo(channel_name, tvg_id):
 
     files = [f for f in os.listdir(LOGOS_DIR) if f.lower().endswith(".png")]
 
-    # 1. Exact match priority
     for cand in candidates:
         if not cand:
             continue
@@ -214,7 +226,6 @@ def find_local_logo(channel_name, tvg_id):
             if name_no_ext == cand:
                 return f"{BASE_PAGES_LOGOS_URL}/{f}"
 
-    # 2. Substring fallback match
     for cand in candidates:
         if not cand:
             continue
@@ -243,12 +254,10 @@ def load_manual_channels(epg_logos_map):
                 url = parts[2]
                 raw_tvg_id = parts[3] if len(parts) >= 4 and parts[3] else name
 
-                # Check multi-source EPG logo map
                 clean_id = raw_tvg_id.lower()
                 clean_name = name.lower()
                 logo_url = epg_logos_map.get(clean_id) or epg_logos_map.get(clean_name)
 
-                # Fallback to local logos/ directory
                 if not logo_url:
                     logo_url = find_local_logo(name, raw_tvg_id)
 
@@ -289,7 +298,6 @@ def parse_m3u_stream(source_url, source_name):
                 group_match = re.search(r'group-title="([^"]*)"', current_meta, re.IGNORECASE)
                 raw_group = group_match.group(1).strip() if group_match else "Общие"
 
-                # Filter out excluded categories strictly before processing
                 if raw_group.lower() in EXCLUDED_EXTERNAL_GROUPS:
                     current_meta = None
                     continue
@@ -348,7 +356,7 @@ def main():
     # 2. Parse manual channels with multi-EPG logo resolution and local fallback
     manual_channels = load_manual_channels(epg_logos_map)
 
-    # 3. Parse and merge external sources (Relax/Religion filtered out)
+    # 3. Parse and merge external sources (Relax/Religion/Local filtered out)
     iptvru_channels = parse_m3u_stream(URL_IPTVRU, "IPTVru")
     loganet_channels = parse_m3u_stream(URL_LOGANET, "LoganetX")
     external_channels = merge_external_playlists(iptvru_channels, loganet_channels)
@@ -366,7 +374,13 @@ def main():
         print("[-] Error: no playable streams found.")
         return
 
-    # 4. Generate final M3U playlist with multi-EPG header
+    # 4. Sort channels strictly by defined category order (preserving internal stream sequence)
+    def category_sort_key(channel):
+        return CATEGORY_INDEX_MAP.get(channel["group"], len(CATEGORY_ORDER))
+
+    final_list.sort(key=category_sort_key)
+
+    # 5. Generate final M3U playlist with multi-EPG header
     content = [f'#EXTM3U x-tvg-url="{EPG_HEADER_STRING}"\n']
     for ch in final_list:
         tvg_id = ch["tvg_id"] or ch["name"]
@@ -388,7 +402,7 @@ def main():
     print(f"\n[+] Playlist generation completed successfully!")
     print(f"    - Manual streams : {len(alive_manual)}")
     print(f"    - External streams: {len(alive_external)}")
-    print(f"    - Excluded groups : {', '.join(sorted(EXCLUDED_EXTERNAL_GROUPS))}")
+    print(f"    - Category order : {' -> '.join(CATEGORY_ORDER)}")
 
 if __name__ == "__main__":
     main()
