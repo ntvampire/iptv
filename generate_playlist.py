@@ -1,23 +1,28 @@
 import os
 import re
+import gzip
+import io
+import xml.etree.ElementTree as ET
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import requests
 
 INPUT_FILE = "input_channels.txt"
 OUTPUT_FILE = "index.m3u"
+OUTPUT_EPG_FILE = "epg.xml.gz"
 LOGOS_DIR = "logos"
-
-# Single primary EPG source
-EPG_HEADER_STRING = "https://iptvx.one/epg/epg.xml.gz"
 
 # External playlist endpoints
 URL_IPTVRU = "https://smolnp.github.io/IPTVru/IPTVstable.m3u8"
 URL_LOGANET = "https://loganettv.github.io/playlists/all.m3u"
 
-# GitHub Pages base URL for serving local logos
+# Upstream EPG to filter from
+SOURCE_EPG_URL = "https://iptvx.one/epg/epg.xml.gz"
+
+# GitHub Pages base URL configuration
 GITHUB_REPOSITORY = os.getenv("GITHUB_REPOSITORY", "ntvampire/iptv")
 REPO_OWNER, REPO_NAME = GITHUB_REPOSITORY.split("/") if "/" in GITHUB_REPOSITORY else ("ntvampire", "iptv")
 BASE_PAGES_LOGOS_URL = f"https://{REPO_OWNER}.github.io/{REPO_NAME}/logos"
+CUSTOM_EPG_URL = f"https://{REPO_OWNER}.github.io/{REPO_NAME}/epg.xml.gz"
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
@@ -31,26 +36,25 @@ IGNORED_CHANNEL_NAMES = {
     "telegram - @loganettv_original",
     "loganettv",
     "iptvru",
-    
+
     # Teleshopping / promo channels
     "shopping live",
     "ювелирочка",
     "shop & show",
     "leomax",
     "витрина тв",
-    
+
     # Unwanted generic streams or duplicates
-    "тест",    
+    "тест",
     "сити эдем",
     "deutsche welle",
     "соловьев",
     "maidan",
-    "stingray", 
-    "лдпр",    
+    "stingray",
+    "лдпр",
     "инфоканал"
 }
 
-# Categories strictly excluded from external sources (lowercase for case-insensitive matching)
 EXCLUDED_EXTERNAL_GROUPS = {
     "релакс",
     "медитативные",
@@ -64,7 +68,6 @@ EXCLUDED_EXTERNAL_GROUPS = {
     "региональные"
 }
 
-# Desired output order of categories
 CATEGORY_ORDER = [
     "Общие",
     "Кино и сериалы",
@@ -77,7 +80,6 @@ CATEGORY_ORDER = [
 ]
 CATEGORY_INDEX_MAP = {cat: idx for idx, cat in enumerate(CATEGORY_ORDER)}
 
-# Category normalization map
 GROUP_NORMALIZATION = {
     "кино": "Кино и сериалы",
     "фильмы": "Кино и сериалы",
@@ -153,7 +155,6 @@ def check_stream(channel):
     return None
 
 def find_local_logo(channel_name, tvg_id):
-    """Search for local logo file in logos/ directory with exact match priority."""
     if not os.path.exists(LOGOS_DIR):
         return ""
 
@@ -168,7 +169,6 @@ def find_local_logo(channel_name, tvg_id):
 
     files = [f for f in os.listdir(LOGOS_DIR) if f.lower().endswith(".png")]
 
-    # 1. Exact match priority
     for cand in candidates:
         if not cand:
             continue
@@ -177,7 +177,6 @@ def find_local_logo(channel_name, tvg_id):
             if name_no_ext == cand:
                 return f"{BASE_PAGES_LOGOS_URL}/{f}"
 
-    # 2. Substring fallback match
     for cand in candidates:
         if not cand:
             continue
@@ -206,7 +205,6 @@ def load_manual_channels():
                 url = parts[2]
                 raw_tvg_id = parts[3] if len(parts) >= 4 and parts[3] else name
 
-                # Retrieve logo exclusively from logos/
                 logo_url = find_local_logo(name, raw_tvg_id)
 
                 channels.append({
@@ -297,11 +295,69 @@ def filter_alive_channels(channels, max_workers=30):
 
     return alive_channels
 
+def generate_custom_epg(channels):
+    """Filter upstream XMLTV EPG to include only channels from final playlist."""
+    # Build match set from both tvg-id and channel name (lowercase)
+    target_ids = set()
+    for ch in channels:
+        if ch.get("tvg_id"):
+            target_ids.add(ch["tvg_id"].strip().lower())
+        if ch.get("name"):
+            target_ids.add(ch["name"].strip().lower())
+
+    print(f"[*] Fetching and filtering EPG from {SOURCE_EPG_URL}...")
+    try:
+        res = requests.get(SOURCE_EPG_URL, headers=HEADERS, timeout=40)
+        if res.status_code != 200:
+            print(f"[-] Failed to download EPG: HTTP {res.status_code}")
+            return
+
+        raw_xml = gzip.decompress(res.content)
+    except Exception as e:
+        print(f"[-] EPG download/decompress error: {e}")
+        return
+
+    print(f"[*] Filtering XMLTV nodes for {len(target_ids)} active keys...")
+    new_root = ET.Element("tv", {"generator-info-name": "Custom IPTV EPG Generator"})
+
+    matched_channel_ids = set()
+    kept_channels = 0
+    kept_programmes = 0
+
+    # Stream parsing via iterparse to minimize memory footprint
+    context = ET.iterparse(io.BytesIO(raw_xml), events=("end",))
+    for _, elem in context:
+        if elem.tag == "channel":
+            ch_id = elem.get("id", "").strip()
+            display_name_elem = elem.find("display-name")
+            display_name = display_name_elem.text.strip().lower() if display_name_elem is not None and display_name_elem.text else ""
+
+            # Match either channel id or display-name
+            if ch_id.lower() in target_ids or display_name in target_ids:
+                new_root.append(elem)
+                matched_channel_ids.add(ch_id)
+                kept_channels += 1
+
+        elif elem.tag == "programme":
+            prog_ch = elem.get("channel", "").strip()
+            if prog_ch in matched_channel_ids or prog_ch.lower() in target_ids:
+                new_root.append(elem)
+                kept_programmes += 1
+
+    print(f"[+] Retained in custom EPG: {kept_channels} channels and {kept_programmes} programmes.")
+
+    # Write compressed custom EPG
+    tree = ET.ElementTree(new_root)
+    with gzip.open(OUTPUT_EPG_FILE, "wb") as f_out:
+        tree.write(f_out, encoding="utf-8", xml_declaration=True)
+
+    print(f"[+] Successfully saved {OUTPUT_EPG_FILE} ({os.path.getsize(OUTPUT_EPG_FILE) // 1024} KB)")
+
 def main():
-    # 1. Parse manual channels with local logos from logos/
+    # 1. Parse manual channels with local logos
     manual_channels = load_manual_channels()
 
-    # 2. Parse and merge external sources (Relax/Religion/Local excluded)
+    # 2. Parse and merge external sources
     iptvru_channels = parse_m3u_stream(URL_IPTVRU, "IPTVru")
     loganet_channels = parse_m3u_stream(URL_LOGANET, "LoganetX")
     external_channels = merge_external_playlists(iptvru_channels, loganet_channels)
@@ -325,8 +381,11 @@ def main():
 
     final_list.sort(key=category_sort_key)
 
-    # 4. Generate final M3U playlist with primary EPG header
-    content = [f'#EXTM3U x-tvg-url="{EPG_HEADER_STRING}"\n']
+    # 4. Generate filtered custom EPG file
+    generate_custom_epg(final_list)
+
+    # 5. Generate final M3U playlist with custom GitHub Pages EPG link
+    content = [f'#EXTM3U x-tvg-url="{CUSTOM_EPG_URL}"\n']
     for ch in final_list:
         tvg_id = ch["tvg_id"] or ch["name"]
         logo = ch.get("logo", "")
@@ -344,10 +403,10 @@ def main():
     with open(OUTPUT_FILE, "w", encoding="utf-8") as out:
         out.write("\n".join(content))
 
-    print(f"\n[+] Playlist generation completed successfully!")
-    print(f"    - Manual streams : {len(alive_manual)}")
-    print(f"    - External streams: {len(alive_external)}")
-    print(f"    - Category order : {' -> '.join(CATEGORY_ORDER)}")
+    print(f"\n[+] Generation completed successfully!")
+    print(f"    - Playlist URL : https://{REPO_OWNER}.github.io/{REPO_NAME}/{OUTPUT_FILE}")
+    print(f"    - Custom EPG   : {CUSTOM_EPG_URL}")
+    print(f"    - Channels count: {len(final_list)}")
 
 if __name__ == "__main__":
     main()
