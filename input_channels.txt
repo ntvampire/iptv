@@ -4,12 +4,12 @@ Trace UK | Музыка | https://d2l4tng0wskzvn.cloudfront.net/Trace_GB.m3u8 | 
 Trace Urban Australia | Музыка | https://lightning-traceurban-samsungau.amagi.tv/playlist.m3u8 | trace-urban-australia
 Trace Urban France | Музыка | https://channels.trace.plus/Traceprod/URBAN_FR_hd/index.m3u8 | trace-urban-france
 Trace Latina | Музыка | https://amg01131-tracetv-tracelatina-glewed-vtnk7.amagi.tv/playlist.m3u8 | trace-latina
-Trace Latina España | Музыка | https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg01131-tracetv-tracelatinaes-samsungspain/playlist.m3u8 | trace-latina-es
-Trace Africa | Музыка | https://channels.trace.plus/Traceprod/AFRICA_EN_ld/index.m3u8 | trace-africa
+# Trace Latina España | Музыка | https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg01131-tracetv-tracelatinaes-samsungspain/playlist.m3u8 | trace-latina-es
+# Trace Africa | Музыка | https://channels.trace.plus/Traceprod/AFRICA_EN_ld/index.m3u8 | trace-africa
 Trace Muzika | Музыка | https://channels.trace.plus/Traceprod/MUZIKA_hd/index.m3u8 | trace-muzika
-Trace Brazuca | Музыка | https://mj1b2xsspj.singularcdn.net.br/trace/brazuca/6/prog_index.m3u8 | trace-brazuca
+# Trace Brazuca | Музыка | https://mj1b2xsspj.singularcdn.net.br/trace/brazuca/6/prog_index.m3u8 | trace-brazuca
 Trace Vanilla | Музыка | https://channels.trace.plus/Traceprod/VANILLA_hd/index.m3u8 | trace-vanilla
-Trace Naija | Музыка | https://channels.trace.plus/Traceprod/NAIJA_hd/index.m3u8 | trace-naija
-Trace Mziki | Музыка | https://channels.trace.plus/Traceprod/MZIKI_hd/index.m3u8 | trace-mziki
-Trace Jama | Музыка | https://channels.trace.plus/Traceprod/JAMA_hd/index.m3u8 | trace-jama
+# Trace Naija | Музыка | https://channels.trace.plus/Traceprod/NAIJA_hd/index.m3u8 | trace-naija
+# Trace Mziki | Музыка | https://channels.trace.plus/Traceprod/MZIKI_hd/index.m3u8 | trace-mziki
+# Trace Jama | Музыка | https://channels.trace.plus/Traceprod/JAMA_hd/index.m3u8 | trace-jama
 XITE Hits UK | Музыка | https://amg01243-xitenetworksint-hitsuk-samsunguk-mvovq.amagi.tv/playlist/amg01243-xitenetworksint-hitsuk-samsunguk/playlist.m3u8 | xite-hits
