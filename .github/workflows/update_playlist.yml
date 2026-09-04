@@ -4,6 +4,14 @@ on:
   schedule:
     - cron: "43 3 * * *"
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "generate_playlist.py"
+      - "input_channels.txt"
+      - "logos/**"
+      - ".github/workflows/update_playlist.yml"
 
 permissions:
   contents: write
