@@ -10,21 +10,21 @@ INPUT_FILE = "input_channels.txt"
 OUTPUT_FILE = "index.m3u"
 LOGOS_DIR = "logos"
 
-# Объединенный EPG: основной русскоязычный + британский/международный от iptv-org
+# Multi-EPG sources: Russian primary + UK/International from iptv-org
 EPG_URLS = [
     "https://iptvx.one/epg/epg.xml.gz",
     "https://iptv-org.github.io/epg/guides/uk/tvguide.co.uk.epg.xml"
 ]
 EPG_HEADER_STRING = ",".join(EPG_URLS)
 
-# URL гида iptv-org для выкачивания оригинальных иконок
+# Primary guide URL for extracting official provider logos
 IPTV_ORG_EPG_XML = "https://iptv-org.github.io/epg/guides/uk/tvguide.co.uk.epg.xml"
 
-# Внешние плейлисты-источники
+# External playlist endpoints
 URL_IPTVRU = "https://smolnp.github.io/IPTVru/IPTVstable.m3u8"
 URL_LOGANET = "https://loganettv.github.io/playlists/all.m3u"
 
-# Базовый URL репозитория на GitHub Pages
+# GitHub Pages base URL for serving local fallback logos
 GITHUB_REPOSITORY = os.getenv("GITHUB_REPOSITORY", "ntvampire/iptv")
 REPO_OWNER, REPO_NAME = GITHUB_REPOSITORY.split("/") if "/" in GITHUB_REPOSITORY else ("ntvampire", "iptv")
 BASE_PAGES_LOGOS_URL = f"https://{REPO_OWNER}.github.io/{REPO_NAME}/logos"
@@ -42,6 +42,19 @@ IGNORED_CHANNEL_NAMES = {
     "iptvru"
 }
 
+# Categories strictly excluded from external sources (lowercase for case-insensitive matching)
+EXCLUDED_EXTERNAL_GROUPS = {
+    "релакс",
+    "медитативные",
+    "relax",
+    "религия",
+    "христианские",
+    "религиозные",
+    "православные",
+    "religion"
+}
+
+# Category normalization map (Relax and Religion removed as redundant)
 GROUP_NORMALIZATION = {
     "кино": "Кино и сериалы",
     "фильмы": "Кино и сериалы",
@@ -83,11 +96,7 @@ GROUP_NORMALIZATION = {
     "развлечение": "Развлекательные",
     "юмор": "Развлекательные",
     "хобби и увлечения": "Развлекательные",
-    "хобби": "Развлекательные",
-    "релакс": "Релакс",
-    "медитативные": "Релакс",
-    "религия": "Религия",
-    "христианские": "Религия"
+    "хобби": "Развлекательные"
 }
 
 def is_blacklisted(channel_name):
@@ -121,13 +130,13 @@ def check_stream(channel):
     return None
 
 def fetch_epg_logos_map(epg_url):
-    """Скачивает XMLTV гид и извлекает соответствие tvg-id -> logo URL."""
+    """Download XMLTV guide and create tvg-id/display-name to logo map."""
     logos_map = {}
-    print(f"[*] Загрузка справочника иконок из EPG ({epg_url})...")
+    print(f"[*] Downloading EPG logo index ({epg_url})...")
     try:
         res = requests.get(epg_url, headers=HEADERS, timeout=20)
         if res.status_code != 200:
-            print(f"[-] Не удалось загрузить EPG, HTTP код: {res.status_code}")
+            print(f"[-] Failed to download EPG, status: {res.status_code}")
             return logos_map
 
         content = res.content
@@ -142,18 +151,17 @@ def fetch_epg_logos_map(epg_url):
                 src = icon.get("src", "").strip()
                 if src:
                     logos_map[ch_id.lower()] = src
-                    # Сохраняем имя канала из тега display-name для дополнительного сопоставления
                     display_name = channel.find("display-name")
                     if display_name is not None and display_name.text:
                         logos_map[display_name.text.strip().lower()] = src
 
-        print(f"[+] Загружено {len(logos_map)} сопоставлений логотипов из EPG.")
+        print(f"[+] Loaded {len(logos_map)} logo associations from EPG.")
     except Exception as e:
-        print(f"[-] Ошибка при парсинге XMLTV: {e}")
+        print(f"[-] XMLTV parse error: {e}")
     return logos_map
 
 def find_local_logo(channel_name, tvg_id):
-    """Ищет локальную иконку в папке logos/ с приоритетом точного совпадения."""
+    """Search for local logo file in logos/ directory with exact match priority."""
     if not os.path.exists(LOGOS_DIR):
         return ""
 
@@ -167,7 +175,7 @@ def find_local_logo(channel_name, tvg_id):
 
     files = [f for f in os.listdir(LOGOS_DIR) if f.lower().endswith(".png")]
 
-    # 1. Приоритет строгого совпадения
+    # 1. Exact match priority
     for cand in candidates:
         if not cand:
             continue
@@ -176,7 +184,7 @@ def find_local_logo(channel_name, tvg_id):
             if name_no_ext == cand:
                 return f"{BASE_PAGES_LOGOS_URL}/{f}"
 
-    # 2. Поиск по частичному совпадению
+    # 2. Substring fallback match
     for cand in candidates:
         if not cand:
             continue
@@ -192,7 +200,7 @@ def load_manual_channels(epg_logos_map):
     if not os.path.exists(INPUT_FILE):
         return channels
 
-    print("[*] Обработка ручных каналов (приоритет: EPG логотип -> fallback: logos/)...")
+    print("[*] Processing manual channels (EPG logo priority -> fallback: logos/)...")
     with open(INPUT_FILE, "r", encoding="utf-8") as f:
         for line in f:
             line = line.strip()
@@ -205,12 +213,12 @@ def load_manual_channels(epg_logos_map):
                 url = parts[2]
                 raw_tvg_id = parts[3] if len(parts) >= 4 and parts[3] else name
 
-                # 1. Сначала проверяем наличие оригинального логотипа в EPG
+                # Check EPG map first
                 clean_id = raw_tvg_id.lower()
                 clean_name = name.lower()
                 logo_url = epg_logos_map.get(clean_id) or epg_logos_map.get(clean_name)
 
-                # 2. Если в EPG нет — берем локальный логотип из logos/
+                # Fallback to local logos/ directory
                 if not logo_url:
                     logo_url = find_local_logo(name, raw_tvg_id)
 
@@ -226,7 +234,7 @@ def load_manual_channels(epg_logos_map):
 
 def parse_m3u_stream(source_url, source_name):
     channels = []
-    print(f"[*] Скачивание плейлиста: {source_name} ...")
+    print(f"[*] Fetching external playlist: {source_name} ...")
     try:
         res = requests.get(source_url, headers=HEADERS, timeout=15)
         if res.status_code != 200:
@@ -248,12 +256,18 @@ def parse_m3u_stream(source_url, source_name):
                     current_meta = None
                     continue
 
-                logo_match = re.search(r'tvg-logo="([^"]*)"', current_meta, re.IGNORECASE)
-                logo = logo_match.group(1).strip() if logo_match else ""
-
                 group_match = re.search(r'group-title="([^"]*)"', current_meta, re.IGNORECASE)
                 raw_group = group_match.group(1).strip() if group_match else "Общие"
+
+                # Filter out excluded categories strictly before processing
+                if raw_group.lower() in EXCLUDED_EXTERNAL_GROUPS:
+                    current_meta = None
+                    continue
+
                 group = normalize_group(raw_group)
+
+                logo_match = re.search(r'tvg-logo="([^"]*)"', current_meta, re.IGNORECASE)
+                logo = logo_match.group(1).strip() if logo_match else ""
 
                 tvg_id_match = re.search(r'tvg-id="([^"]*)"', current_meta, re.IGNORECASE)
                 tvg_id = tvg_id_match.group(1).strip() if tvg_id_match else name
@@ -268,7 +282,7 @@ def parse_m3u_stream(source_url, source_name):
                 })
                 current_meta = None
     except Exception as e:
-        print(f"[-] Ошибка парсинга {source_name}: {e}")
+        print(f"[-] Error parsing {source_name}: {e}")
     return channels
 
 def merge_external_playlists(iptvru_list, loganet_list):
@@ -280,7 +294,7 @@ def merge_external_playlists(iptvru_list, loganet_list):
     return list(merged.values())
 
 def filter_alive_channels(channels, max_workers=30):
-    print(f"[*] Проверка {len(channels)} внешних стримов на доступность...")
+    print(f"[*] Checking {len(channels)} external streams for availability...")
     alive_channels = []
     total = len(channels)
     done_count = 0
@@ -293,18 +307,18 @@ def filter_alive_channels(channels, max_workers=30):
             if res:
                 alive_channels.append(res)
             if done_count % 50 == 0 or done_count == total:
-                print(f"  > Проверено: {done_count}/{total} | Доступно: {len(alive_channels)}")
+                print(f"  > Checked: {done_count}/{total} | Alive: {len(alive_channels)}")
 
     return alive_channels
 
 def main():
-    # 1. Загрузка карты иконок из EPG iptv-org
+    # 1. Fetch EPG logo dictionary
     epg_logos_map = fetch_epg_logos_map(IPTV_ORG_EPG_XML)
 
-    # 2. Загрузка ручных каналов с привязкой EPG / локальных логотипов
+    # 2. Parse manual channels
     manual_channels = load_manual_channels(epg_logos_map)
 
-    # 3. Загрузка и проверка внешних источников
+    # 3. Parse and merge external sources (excluded categories filtered out)
     iptvru_channels = parse_m3u_stream(URL_IPTVRU, "IPTVru")
     loganet_channels = parse_m3u_stream(URL_LOGANET, "LoganetX")
     external_channels = merge_external_playlists(iptvru_channels, loganet_channels)
@@ -312,17 +326,17 @@ def main():
     manual_keys = {ch["name"].strip().lower() for ch in manual_channels}
     filtered_external = [ch for ch in external_channels if ch["name"].strip().lower() not in manual_keys]
 
-    print(f"[*] Проверка ручных стримов ({len(manual_channels)} каналов)...")
+    print(f"[*] Verifying manual streams ({len(manual_channels)} channels)...")
     alive_manual = [ch for ch in manual_channels if check_stream(ch)]
     alive_external = filter_alive_channels(filtered_external, max_workers=30)
 
     final_list = alive_manual + alive_external
 
     if not final_list:
-        print("[-] Ошибка: нет доступных потоков.")
+        print("[-] Error: no playable streams found.")
         return
 
-    # 4. Формирование итогового M3U с мульти-EPG заголовком
+    # 4. Generate final M3U playlist with multi-EPG header
     content = [f'#EXTM3U x-tvg-url="{EPG_HEADER_STRING}"\n']
     for ch in final_list:
         tvg_id = ch["tvg_id"] or ch["name"]
@@ -341,10 +355,11 @@ def main():
     with open(OUTPUT_FILE, "w", encoding="utf-8") as out:
         out.write("\n".join(content))
 
-    print(f"\n[+] Сборка плейлиста завершена!")
-    print(f"    - Ручных стримов: {len(alive_manual)}")
-    print(f"    - Внешних каналов: {len(alive_external)}")
-    print(f"    - EPG источники: {EPG_HEADER_STRING}")
+    print(f"\n[+] Playlist generation completed successfully!")
+    print(f"    - Manual streams : {len(alive_manual)}")
+    print(f"    - External streams: {len(alive_external)}")
+    print(f"    - Excluded groups : {', '.join(sorted(EXCLUDED_EXTERNAL_GROUPS))}")
 
 if __name__ == "__main__":
     main()
+    
