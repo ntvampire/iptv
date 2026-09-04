@@ -295,6 +295,13 @@ def filter_alive_channels(channels, max_workers=30):
 
     return alive_channels
 
+def _create_empty_epg():
+    """Fallback generator to guarantee epg.xml.gz exists."""
+    root = ET.Element("tv")
+    tree = ET.ElementTree(root)
+    with gzip.open(OUTPUT_EPG_FILE, "wb") as f:
+        tree.write(f, encoding="utf-8", xml_declaration=True)
+
 def generate_custom_epg(channels):
     """Download and filter upstream EPG using stream processing to prevent OOM."""
     target_ids = set()
@@ -310,7 +317,6 @@ def generate_custom_epg(channels):
         with requests.get(SOURCE_EPG_URL, headers=HEADERS, stream=True, timeout=120) as r:
             if r.status_code != 200:
                 print(f"[-] Failed to fetch source EPG, HTTP {r.status_code}")
-                # Create empty valid EPG archive so git add and link won't break
                 _create_empty_epg()
                 return
             with open(temp_gz, "wb") as f:
@@ -330,7 +336,7 @@ def generate_custom_epg(channels):
     kept_programmes = 0
 
     try:
-with gzip.open(temp_gz, "rb") as gz_in:
+        with gzip.open(temp_gz, "rb") as gz_in:
             context = ET.iterparse(gz_in, events=("end",))
             for _, elem in context:
                 if elem.tag == "channel":
@@ -343,7 +349,7 @@ with gzip.open(temp_gz, "rb") as gz_in:
                         matched_channel_ids.add(ch_id)
                         kept_channels += 1
                     else:
-                        elem.clear()  # Очищаем только не подошедшие каналы
+                        elem.clear()
 
                 elif elem.tag == "programme":
                     prog_ch = elem.get("channel", "").strip()
@@ -351,7 +357,7 @@ with gzip.open(temp_gz, "rb") as gz_in:
                         new_root.append(elem)
                         kept_programmes += 1
                     else:
-                        elem.clear()  # Очищаем только не подошедшие передачи
+                        elem.clear()
 
                 elif elem.tag not in ("tv",):
                     elem.clear()
@@ -368,13 +374,6 @@ with gzip.open(temp_gz, "rb") as gz_in:
     finally:
         if os.path.exists(temp_gz):
             os.remove(temp_gz)
-
-def _create_empty_epg():
-    """Fallback generator to guarantee epg.xml.gz exists."""
-    root = ET.Element("tv")
-    tree = ET.ElementTree(root)
-    with gzip.open(OUTPUT_EPG_FILE, "wb") as f:
-        tree.write(f, encoding="utf-8", xml_declaration=True)
 
 def main():
     # 1. Parse manual channels with local logos
