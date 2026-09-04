@@ -34,11 +34,29 @@ HEADERS = {
 }
 
 IGNORED_CHANNEL_NAMES = {
+    # Original promo & info entries
     "loganettv all",
     "telegram - t.me/loganettv_original",
     "telegram - @loganettv_original",
     "loganettv",
-    "iptvru"
+    "iptvru",
+    
+    # Teleshopping / promo channels
+    "shopping live",
+    "ювелирочка",
+    "shop & show",
+    "leomax",
+    "витрина тв",
+    
+    # Unwanted generic streams or duplicates
+    "тест",    
+    "сити эдем",
+    "deutsche welle",
+    "соловьев",
+    "maidan",
+    "stingray", 
+    "лдпр",    
+    "инфоканал"
 }
 
 # Categories strictly excluded from external sources (lowercase for case-insensitive matching)
