@@ -330,7 +330,7 @@ def generate_custom_epg(channels):
     kept_programmes = 0
 
     try:
-        with gzip.open(temp_gz, "rb") as gz_in:
+with gzip.open(temp_gz, "rb") as gz_in:
             context = ET.iterparse(gz_in, events=("end",))
             for _, elem in context:
                 if elem.tag == "channel":
@@ -342,15 +342,19 @@ def generate_custom_epg(channels):
                         new_root.append(elem)
                         matched_channel_ids.add(ch_id)
                         kept_channels += 1
+                    else:
+                        elem.clear()  # Очищаем только не подошедшие каналы
 
                 elif elem.tag == "programme":
                     prog_ch = elem.get("channel", "").strip()
                     if prog_ch in matched_channel_ids or prog_ch.lower() in target_ids:
                         new_root.append(elem)
                         kept_programmes += 1
+                    else:
+                        elem.clear()  # Очищаем только не подошедшие передачи
 
-                # Clean up element from memory after evaluation
-                elem.clear()
+                elif elem.tag not in ("tv",):
+                    elem.clear()
 
         print(f"[+] Retained in custom EPG: {kept_channels} channels and {kept_programmes} programmes.")
         tree = ET.ElementTree(new_root)
