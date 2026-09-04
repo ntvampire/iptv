@@ -1,15 +1,15 @@
-Trace Urban | Музыка | https://channels.trace.plus/Traceprod/URBAN_INTER_hd/index.m3u8 | TraceUrban.uk
-Trace Urban HD | Музыка | https://amg01131-tracetv-amg01131c1-rakuten-us-1081.playouts.now.amagi.tv/playlist/amg01131-tracetvfast-traceurban-rakutenus/playlist.m3u8 | TraceUrban.us
-Trace UK | Музыка | https://d2l4tng0wskzvn.cloudfront.net/Trace_GB.m3u8 | TraceHitsUK.uk
-Trace Urban Australia | Музыка | https://lightning-traceurban-samsungau.amagi.tv/playlist.m3u8 | TraceUrban.au
-Trace Urban France | Музыка | https://channels.trace.plus/Traceprod/URBAN_FR_hd/index.m3u8 | TraceUrban.fr
-Trace Latina | Музыка | https://amg01131-tracetv-tracelatina-glewed-vtnk7.amagi.tv/playlist.m3u8 | TraceLatina.us
-Trace Latina España | Музыка | https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg01131-tracetv-tracelatinaes-samsungspain/playlist.m3u8 | TraceLatina.es
-Trace Africa | Музыка | https://channels.trace.plus/Traceprod/AFRICA_EN_ld/index.m3u8 | TraceAfrica.fr
-Trace Muzika | Музыка | https://channels.trace.plus/Traceprod/MUZIKA_hd/index.m3u8 | TraceMuzika.fr
-Trace Brazuca | Музыка | https://mj1b2xsspj.singularcdn.net.br/trace/brazuca/6/prog_index.m3u8 | TraceBrazuca.br
-Trace Vanilla | Музыка | https://channels.trace.plus/Traceprod/VANILLA_hd/index.m3u8 | TraceVanilla.fr
-Trace Naija | Музыка | https://channels.trace.plus/Traceprod/NAIJA_hd/index.m3u8 | TraceNaija.ng
-Trace Mziki | Музыка | https://channels.trace.plus/Traceprod/MZIKI_hd/index.m3u8 | TraceMziki.ke
-Trace Jama | Музыка | https://channels.trace.plus/Traceprod/JAMA_hd/index.m3u8 | TraceJama.fr
-XITE Hits UK | Музыка | https://amg01243-xitenetworksint-hitsuk-samsunguk-mvovq.amagi.tv/playlist/amg01243-xitenetworksint-hitsuk-samsunguk/playlist.m3u8 | XITEHits.uk
+Trace Urban | Музыка | https://channels.trace.plus/Traceprod/URBAN_INTER_hd/index.m3u8 | trace-urban
+Trace Urban HD | Музыка | https://amg01131-tracetv-amg01131c1-rakuten-us-1081.playouts.now.amagi.tv/playlist/amg01131-tracetvfast-traceurban-rakutenus/playlist.m3u8 | trace-urban-hd
+Trace UK | Музыка | https://d2l4tng0wskzvn.cloudfront.net/Trace_GB.m3u8 | trace-uk
+Trace Urban Australia | Музыка | https://lightning-traceurban-samsungau.amagi.tv/playlist.m3u8 | trace-urban-australia
+Trace Urban France | Музыка | https://channels.trace.plus/Traceprod/URBAN_FR_hd/index.m3u8 | trace-urban-france
+Trace Latina | Музыка | https://amg01131-tracetv-tracelatina-glewed-vtnk7.amagi.tv/playlist.m3u8 | trace-latina
+Trace Latina España | Музыка | https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg01131-tracetv-tracelatinaes-samsungspain/playlist.m3u8 | trace-latina-es
+Trace Africa | Музыка | https://channels.trace.plus/Traceprod/AFRICA_EN_ld/index.m3u8 | trace-africa
+Trace Muzika | Музыка | https://channels.trace.plus/Traceprod/MUZIKA_hd/index.m3u8 | trace-muzika
+Trace Brazuca | Музыка | https://mj1b2xsspj.singularcdn.net.br/trace/brazuca/6/prog_index.m3u8 | trace-brazuca
+Trace Vanilla | Музыка | https://channels.trace.plus/Traceprod/VANILLA_hd/index.m3u8 | trace-vanilla
+Trace Naija | Музыка | https://channels.trace.plus/Traceprod/NAIJA_hd/index.m3u8 | trace-naija
+Trace Mziki | Музыка | https://channels.trace.plus/Traceprod/MZIKI_hd/index.m3u8 | trace-mziki
+Trace Jama | Музыка | https://channels.trace.plus/Traceprod/JAMA_hd/index.m3u8 | trace-jama
+XITE Hits UK | Музыка | https://amg01243-xitenetworksint-hitsuk-samsunguk-mvovq.amagi.tv/playlist/amg01243-xitenetworksint-hitsuk-samsunguk/playlist.m3u8 | xite-hits
