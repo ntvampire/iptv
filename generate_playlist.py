@@ -51,7 +51,18 @@ IGNORED_CHANNEL_NAMES = {
     "соловьев",
     "maidan",
     "stingray",
+    "euronews",
     "лдпр",
+    "беларусь",
+    "севастополь",
+    "крым",
+    "екатеринбург",
+    "москва",
+    "новгород",
+    "приднестровье",
+    "кубань",
+    "пинск тв",
+    "юганск",
     "инфоканал"
 }
 
@@ -122,6 +133,12 @@ GROUP_NORMALIZATION = {
     "юмор": "Развлекательные",
     "хобби и увлечения": "Развлекательные",
     "хобби": "Развлекательные"
+}
+
+# Force-override channel groups by channel name (lowercase)
+CHANNEL_GROUP_OVERRIDES = {
+    "trace sport stars": "Спорт",
+    "trace sport stars hd": "Спорт"
 }
 
 def is_blacklisted(channel_name):
@@ -249,7 +266,12 @@ def parse_m3u_stream(source_url, source_name):
                     continue
 
                 group = normalize_group(raw_group)
-
+                
+# Apply channel-specific group override if defined
+clean_name = name.strip().lower()
+if clean_name in CHANNEL_GROUP_OVERRIDES:
+    group = CHANNEL_GROUP_OVERRIDES[clean_name]
+    
                 logo_match = re.search(r'tvg-logo="([^"]*)"', current_meta, re.IGNORECASE)
                 logo = logo_match.group(1).strip() if logo_match else ""
 
