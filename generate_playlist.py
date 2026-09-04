@@ -266,12 +266,12 @@ def parse_m3u_stream(source_url, source_name):
                     continue
 
                 group = normalize_group(raw_group)
-                
-# Apply channel-specific group override if defined
-clean_name = name.strip().lower()
-if clean_name in CHANNEL_GROUP_OVERRIDES:
-    group = CHANNEL_GROUP_OVERRIDES[clean_name]
-    
+
+                # Ручное переопределение категории для конкретного канала
+                clean_name = name.strip().lower()
+                if "CHANNEL_GROUP_OVERRIDES" in globals() and clean_name in CHANNEL_GROUP_OVERRIDES:
+                    group = CHANNEL_GROUP_OVERRIDES[clean_name]
+
                 logo_match = re.search(r'tvg-logo="([^"]*)"', current_meta, re.IGNORECASE)
                 logo = logo_match.group(1).strip() if logo_match else ""
 
