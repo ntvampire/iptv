@@ -2,8 +2,7 @@ name: Update IPTV Playlist and EPG
 
 on:
   schedule:
-    # Запуск дважды в сутки (в 03:00 и 15:00 UTC)
-    - cron: "0 3,15 * * *"
+    - cron: "43 3 * * *"
   workflow_dispatch:
 
 permissions:
