@@ -296,8 +296,7 @@ def filter_alive_channels(channels, max_workers=30):
     return alive_channels
 
 def generate_custom_epg(channels):
-    """Filter upstream XMLTV EPG to include only channels from final playlist."""
-    # Build match set from both tvg-id and channel name (lowercase)
+    """Download and filter upstream EPG using stream processing to prevent OOM."""
     target_ids = set()
     for ch in channels:
         if ch.get("tvg_id"):
@@ -305,53 +304,73 @@ def generate_custom_epg(channels):
         if ch.get("name"):
             target_ids.add(ch["name"].strip().lower())
 
-    print(f"[*] Fetching and filtering EPG from {SOURCE_EPG_URL}...")
+    temp_gz = "temp_source_epg.xml.gz"
+    print(f"[*] Downloading source EPG stream from {SOURCE_EPG_URL}...")
     try:
-        res = requests.get(SOURCE_EPG_URL, headers=HEADERS, timeout=40)
-        if res.status_code != 200:
-            print(f"[-] Failed to download EPG: HTTP {res.status_code}")
-            return
-
-        raw_xml = gzip.decompress(res.content)
+        with requests.get(SOURCE_EPG_URL, headers=HEADERS, stream=True, timeout=120) as r:
+            if r.status_code != 200:
+                print(f"[-] Failed to fetch source EPG, HTTP {r.status_code}")
+                # Create empty valid EPG archive so git add and link won't break
+                _create_empty_epg()
+                return
+            with open(temp_gz, "wb") as f:
+                for chunk in r.iter_content(chunk_size=1024 * 512):
+                    if chunk:
+                        f.write(chunk)
+        print(f"[+] Downloaded source EPG archive ({os.path.getsize(temp_gz) // 1024} KB)")
     except Exception as e:
-        print(f"[-] EPG download/decompress error: {e}")
+        print(f"[-] Error downloading EPG stream: {e}")
+        _create_empty_epg()
         return
 
-    print(f"[*] Filtering XMLTV nodes for {len(target_ids)} active keys...")
+    print(f"[*] Filtering XMLTV stream for {len(target_ids)} channel identifiers...")
     new_root = ET.Element("tv", {"generator-info-name": "Custom IPTV EPG Generator"})
-
     matched_channel_ids = set()
     kept_channels = 0
     kept_programmes = 0
 
-    # Stream parsing via iterparse to minimize memory footprint
-    context = ET.iterparse(io.BytesIO(raw_xml), events=("end",))
-    for _, elem in context:
-        if elem.tag == "channel":
-            ch_id = elem.get("id", "").strip()
-            display_name_elem = elem.find("display-name")
-            display_name = display_name_elem.text.strip().lower() if display_name_elem is not None and display_name_elem.text else ""
+    try:
+        with gzip.open(temp_gz, "rb") as gz_in:
+            context = ET.iterparse(gz_in, events=("end",))
+            for _, elem in context:
+                if elem.tag == "channel":
+                    ch_id = elem.get("id", "").strip()
+                    display_name_elem = elem.find("display-name")
+                    display_name = display_name_elem.text.strip().lower() if display_name_elem is not None and display_name_elem.text else ""
 
-            # Match either channel id or display-name
-            if ch_id.lower() in target_ids or display_name in target_ids:
-                new_root.append(elem)
-                matched_channel_ids.add(ch_id)
-                kept_channels += 1
+                    if ch_id.lower() in target_ids or display_name in target_ids:
+                        new_root.append(elem)
+                        matched_channel_ids.add(ch_id)
+                        kept_channels += 1
 
-        elif elem.tag == "programme":
-            prog_ch = elem.get("channel", "").strip()
-            if prog_ch in matched_channel_ids or prog_ch.lower() in target_ids:
-                new_root.append(elem)
-                kept_programmes += 1
+                elif elem.tag == "programme":
+                    prog_ch = elem.get("channel", "").strip()
+                    if prog_ch in matched_channel_ids or prog_ch.lower() in target_ids:
+                        new_root.append(elem)
+                        kept_programmes += 1
 
-    print(f"[+] Retained in custom EPG: {kept_channels} channels and {kept_programmes} programmes.")
+                # Clean up element from memory after evaluation
+                elem.clear()
 
-    # Write compressed custom EPG
-    tree = ET.ElementTree(new_root)
-    with gzip.open(OUTPUT_EPG_FILE, "wb") as f_out:
-        tree.write(f_out, encoding="utf-8", xml_declaration=True)
+        print(f"[+] Retained in custom EPG: {kept_channels} channels and {kept_programmes} programmes.")
+        tree = ET.ElementTree(new_root)
+        with gzip.open(OUTPUT_EPG_FILE, "wb") as f_out:
+            tree.write(f_out, encoding="utf-8", xml_declaration=True)
+        print(f"[+] Successfully generated {OUTPUT_EPG_FILE} ({os.path.getsize(OUTPUT_EPG_FILE) // 1024} KB)")
 
-    print(f"[+] Successfully saved {OUTPUT_EPG_FILE} ({os.path.getsize(OUTPUT_EPG_FILE) // 1024} KB)")
+    except Exception as e:
+        print(f"[-] Parsing error: {e}")
+        _create_empty_epg()
+    finally:
+        if os.path.exists(temp_gz):
+            os.remove(temp_gz)
+
+def _create_empty_epg():
+    """Fallback generator to guarantee epg.xml.gz exists."""
+    root = ET.Element("tv")
+    tree = ET.ElementTree(root)
+    with gzip.open(OUTPUT_EPG_FILE, "wb") as f:
+        tree.write(f, encoding="utf-8", xml_declaration=True)
 
 def main():
     # 1. Parse manual channels with local logos
