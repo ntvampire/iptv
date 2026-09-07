@@ -324,6 +324,7 @@ def _create_empty_epg():
     with gzip.open(OUTPUT_EPG_FILE, "wb") as f:
         tree.write(f, encoding="utf-8", xml_declaration=True)
 
+
 def generate_custom_epg(channels):
     """Download and filter upstream EPG using stream processing to prevent OOM."""
     target_ids = set()
@@ -358,13 +359,17 @@ def generate_custom_epg(channels):
     kept_programmes = 0
 
     try:
-with gzip.open(temp_gz, "rb") as gz_in:
+        with gzip.open(temp_gz, "rb") as gz_in:
             context = ET.iterparse(gz_in, events=("end",))
             for _, elem in context:
                 if elem.tag == "channel":
                     ch_id = elem.get("id", "").strip()
                     display_name_elem = elem.find("display-name")
-                    display_name = display_name_elem.text.strip().lower() if display_name_elem is not None and display_name_elem.text else ""
+                    display_name = (
+                        display_name_elem.text.strip().lower()
+                        if display_name_elem is not None and display_name_elem.text
+                        else ""
+                    )
 
                     if ch_id.lower() in target_ids or display_name in target_ids:
                         new_root.append(elem)
@@ -380,9 +385,6 @@ with gzip.open(temp_gz, "rb") as gz_in:
                         kept_programmes += 1
                     else:
                         elem.clear()
-
-                elif elem.tag not in ("tv",):
-                    elem.clear()
 
         print(f"[+] Retained in custom EPG: {kept_channels} channels and {kept_programmes} programmes.")
         tree = ET.ElementTree(new_root)
