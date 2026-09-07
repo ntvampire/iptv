@@ -1,7 +1,7 @@
-import os
-import re
 import gzip
 import io
+import os
+import re
 import xml.etree.ElementTree as ET
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import requests
@@ -15,18 +15,23 @@ LOGOS_DIR = "logos"
 URL_IPTVRU = "https://smolnp.github.io/IPTVru/IPTVstable.m3u8"
 URL_LOGANET = "https://loganettv.github.io/playlists/all.m3u"
 
-# Upstream EPG to filter from
-SOURCE_EPG_URL = "https://iptvx.one/epg/epg.xml.gz"
+# Upstream EPG sources in order of priority
+PRIMARY_EPG_URL = "https://iptvx.one/epg/epg.xml.gz"
+SECONDARY_EPG_URL = "http://epg.one/epg2.xml.gz"
 
 # GitHub Pages base URL configuration
 GITHUB_REPOSITORY = os.getenv("GITHUB_REPOSITORY", "ntvampire/iptv")
-REPO_OWNER, REPO_NAME = GITHUB_REPOSITORY.split("/") if "/" in GITHUB_REPOSITORY else ("ntvampire", "iptv")
+REPO_OWNER, REPO_NAME = (
+    GITHUB_REPOSITORY.split("/")
+    if "/" in GITHUB_REPOSITORY
+    else ("ntvampire", "iptv")
+)
 BASE_PAGES_LOGOS_URL = f"https://{REPO_OWNER}.github.io/{REPO_NAME}/logos"
 CUSTOM_EPG_URL = f"https://{REPO_OWNER}.github.io/{REPO_NAME}/epg.xml.gz"
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    "Accept": "*/*"
+    "Accept": "*/*",
 }
 
 IGNORED_CHANNEL_NAMES = {
@@ -36,14 +41,12 @@ IGNORED_CHANNEL_NAMES = {
     "telegram - @loganettv_original",
     "loganettv",
     "iptvru",
-
     # Teleshopping / promo channels
     "shopping live",
     "ювелирочка",
     "shop & show",
     "leomax",
     "витрина тв",
-
     # Unwanted generic streams or duplicates
     "тест",
     "сити эдем",
@@ -51,19 +54,8 @@ IGNORED_CHANNEL_NAMES = {
     "соловьев",
     "maidan",
     "stingray",
-    "euronews",
     "лдпр",
-    "беларусь",
-    "севастополь",
-    "крым",
-    "екатеринбург",
-    "москва",
-    "новгород",
-    "приднестровье",
-    "кубань",
-    "пинск тв",
-    "юганск",
-    "инфоканал"
+    "инфоканал",
 }
 
 EXCLUDED_EXTERNAL_GROUPS = {
@@ -76,7 +68,7 @@ EXCLUDED_EXTERNAL_GROUPS = {
     "православные",
     "religion",
     "местные",
-    "региональные"
+    "региональные",
 }
 
 CATEGORY_ORDER = [
@@ -87,9 +79,15 @@ CATEGORY_ORDER = [
     "Развлекательные",
     "Познавательные",
     "Спорт",
-    "Новости"
+    "Новости",
 ]
 CATEGORY_INDEX_MAP = {cat: idx for idx, cat in enumerate(CATEGORY_ORDER)}
+
+# Force-override channel groups by channel name (lowercase)
+CHANNEL_GROUP_OVERRIDES = {
+    "trace sport stars": "Спорт",
+    "trace sport stars hd": "Спорт",
+}
 
 GROUP_NORMALIZATION = {
     "кино": "Кино и сериалы",
@@ -132,14 +130,9 @@ GROUP_NORMALIZATION = {
     "развлечение": "Развлекательные",
     "юмор": "Развлекательные",
     "хобби и увлечения": "Развлекательные",
-    "хобби": "Развлекательные"
+    "хобби": "Развлекательные",
 }
 
-# Force-override channel groups by channel name (lowercase)
-CHANNEL_GROUP_OVERRIDES = {
-    "trace sport stars": "Спорт",
-    "trace sport stars hd": "Спорт"
-}
 
 def is_blacklisted(channel_name):
     clean = channel_name.strip().lower()
@@ -147,16 +140,18 @@ def is_blacklisted(channel_name):
         return True
     return any(ignored in clean for ignored in IGNORED_CHANNEL_NAMES)
 
+
 def normalize_group(group_title):
     if not group_title:
         return "Общие"
     clean = group_title.strip().lower()
     if clean in GROUP_NORMALIZATION:
         return GROUP_NORMALIZATION[clean]
-    base_clean = re.sub(r'[\(\[\{].*?[\)\]\}]', '', clean).strip()
+    base_clean = re.sub(r"[\(\[\{].*?[\)\]\}]", "", clean).strip()
     if base_clean in GROUP_NORMALIZATION:
         return GROUP_NORMALIZATION[base_clean]
     return group_title.strip().capitalize()
+
 
 def check_stream(channel):
     url = channel["url"]
@@ -171,17 +166,18 @@ def check_stream(channel):
         pass
     return None
 
+
 def find_local_logo(channel_name, tvg_id):
     if not os.path.exists(LOGOS_DIR):
         return ""
 
     candidates = [
         tvg_id.lower().strip(),
-        re.sub(r'[^a-z0-9]+', '-', channel_name.lower()).strip('-'),
-        re.sub(r'[^a-z0-9]+', '_', channel_name.lower()).strip('_'),
-        re.sub(r'[^a-z0-9]+', '', channel_name.lower()),
-        re.sub(r'[^a-z0-9]+', '-', tvg_id.lower()).strip('-'),
-        re.sub(r'[^a-z0-9]+', '_', tvg_id.lower()).strip('_'),
+        re.sub(r"[^a-z0-9]+", "-", channel_name.lower()).strip("-"),
+        re.sub(r"[^a-z0-9]+", "_", channel_name.lower()).strip("_"),
+        re.sub(r"[^a-z0-9]+", "", channel_name.lower()),
+        re.sub(r"[^a-z0-9]+", "-", tvg_id.lower()).strip("-"),
+        re.sub(r"[^a-z0-9]+", "_", tvg_id.lower()).strip("_"),
     ]
 
     files = [f for f in os.listdir(LOGOS_DIR) if f.lower().endswith(".png")]
@@ -204,6 +200,7 @@ def find_local_logo(channel_name, tvg_id):
 
     return ""
 
+
 def load_manual_channels():
     channels = []
     if not os.path.exists(INPUT_FILE):
@@ -224,15 +221,18 @@ def load_manual_channels():
 
                 logo_url = find_local_logo(name, raw_tvg_id)
 
-                channels.append({
-                    "name": name,
-                    "group": group,
-                    "url": url,
-                    "logo": logo_url or "",
-                    "tvg_id": raw_tvg_id,
-                    "is_manual": True
-                })
+                channels.append(
+                    {
+                        "name": name,
+                        "group": group,
+                        "url": url,
+                        "logo": logo_url or "",
+                        "tvg_id": raw_tvg_id,
+                        "is_manual": True,
+                    }
+                )
     return channels
+
 
 def parse_m3u_stream(source_url, source_name):
     channels = []
@@ -251,14 +251,22 @@ def parse_m3u_stream(source_url, source_name):
                 continue
             if line.startswith("#EXTINF:"):
                 current_meta = line
-            elif (line.startswith("http://") or line.startswith("https://")) and current_meta:
-                name = current_meta.split(",")[-1].strip() if "," in current_meta else "Unknown"
+            elif (
+                line.startswith("http://") or line.startswith("https://")
+            ) and current_meta:
+                name = (
+                    current_meta.split(",")[-1].strip()
+                    if "," in current_meta
+                    else "Unknown"
+                )
 
                 if is_blacklisted(name):
                     current_meta = None
                     continue
 
-                group_match = re.search(r'group-title="([^"]*)"', current_meta, re.IGNORECASE)
+                group_match = re.search(
+                    r'group-title="([^"]*)"', current_meta, re.IGNORECASE
+                )
                 raw_group = group_match.group(1).strip() if group_match else "Общие"
 
                 if raw_group.lower() in EXCLUDED_EXTERNAL_GROUPS:
@@ -267,29 +275,35 @@ def parse_m3u_stream(source_url, source_name):
 
                 group = normalize_group(raw_group)
 
-                # Ручное переопределение категории для конкретного канала
                 clean_name = name.strip().lower()
-                if "CHANNEL_GROUP_OVERRIDES" in globals() and clean_name in CHANNEL_GROUP_OVERRIDES:
+                if clean_name in CHANNEL_GROUP_OVERRIDES:
                     group = CHANNEL_GROUP_OVERRIDES[clean_name]
 
-                logo_match = re.search(r'tvg-logo="([^"]*)"', current_meta, re.IGNORECASE)
+                logo_match = re.search(
+                    r'tvg-logo="([^"]*)"', current_meta, re.IGNORECASE
+                )
                 logo = logo_match.group(1).strip() if logo_match else ""
 
-                tvg_id_match = re.search(r'tvg-id="([^"]*)"', current_meta, re.IGNORECASE)
+                tvg_id_match = re.search(
+                    r'tvg-id="([^"]*)"', current_meta, re.IGNORECASE
+                )
                 tvg_id = tvg_id_match.group(1).strip() if tvg_id_match else name
 
-                channels.append({
-                    "name": name,
-                    "group": group,
-                    "url": line,
-                    "logo": logo,
-                    "tvg_id": tvg_id,
-                    "is_manual": False
-                })
+                channels.append(
+                    {
+                        "name": name,
+                        "group": group,
+                        "url": line,
+                        "logo": logo,
+                        "tvg_id": tvg_id,
+                        "is_manual": False,
+                    }
+                )
                 current_meta = None
     except Exception as e:
         print(f"[-] Error parsing {source_name}: {e}")
     return channels
+
 
 def merge_external_playlists(iptvru_list, loganet_list):
     merged = {}
@@ -298,6 +312,7 @@ def merge_external_playlists(iptvru_list, loganet_list):
     for ch in iptvru_list:
         merged[ch["name"].strip().lower()] = ch
     return list(merged.values())
+
 
 def filter_alive_channels(channels, max_workers=30):
     print(f"[*] Checking {len(channels)} external streams for availability...")
@@ -317,6 +332,7 @@ def filter_alive_channels(channels, max_workers=30):
 
     return alive_channels
 
+
 def _create_empty_epg():
     """Fallback generator to guarantee epg.xml.gz exists."""
     root = ET.Element("tv")
@@ -325,8 +341,21 @@ def _create_empty_epg():
         tree.write(f, encoding="utf-8", xml_declaration=True)
 
 
+def _download_stream(url, target_path):
+    """Downloads a gzipped stream to target file path."""
+    with requests.get(url, headers=HEADERS, stream=True, timeout=120) as r:
+        if r.status_code != 200:
+            print(f"[-] Failed to fetch {url}, HTTP {r.status_code}")
+            return False
+        with open(target_path, "wb") as f:
+            for chunk in r.iter_content(chunk_size=1024 * 512):
+                if chunk:
+                    f.write(chunk)
+    return True
+
+
 def generate_custom_epg(channels):
-    """Download and filter upstream EPG using stream processing to prevent OOM."""
+    """Download and merge multiple upstream EPGs with iptvx.one priority."""
     target_ids = set()
     for ch in channels:
         if ch.get("tvg_id"):
@@ -334,82 +363,102 @@ def generate_custom_epg(channels):
         if ch.get("name"):
             target_ids.add(ch["name"].strip().lower())
 
-    temp_gz = "temp_source_epg.xml.gz"
-    print(f"[*] Downloading source EPG stream from {SOURCE_EPG_URL}...")
-    try:
-        with requests.get(SOURCE_EPG_URL, headers=HEADERS, stream=True, timeout=120) as r:
-            if r.status_code != 200:
-                print(f"[-] Failed to fetch source EPG, HTTP {r.status_code}")
-                _create_empty_epg()
-                return
-            with open(temp_gz, "wb") as f:
-                for chunk in r.iter_content(chunk_size=1024 * 512):
-                    if chunk:
-                        f.write(chunk)
-        print(f"[+] Downloaded source EPG archive ({os.path.getsize(temp_gz) // 1024} KB)")
-    except Exception as e:
-        print(f"[-] Error downloading EPG stream: {e}")
-        _create_empty_epg()
-        return
+    new_root = ET.Element("tv", {"generator-info-name": "Custom Merged IPTV EPG"})
+    seen_channels = set()
+    seen_programmes = set()
 
-    print(f"[*] Filtering XMLTV stream for {len(target_ids)} channel identifiers...")
-    new_root = ET.Element("tv", {"generator-info-name": "Custom IPTV EPG Generator"})
-    matched_channel_ids = set()
-    kept_channels = 0
-    kept_programmes = 0
+    sources = [
+        ("iptvx.one (Primary)", PRIMARY_EPG_URL),
+        ("epg.one (Secondary)", SECONDARY_EPG_URL),
+    ]
 
-    try:
-        with gzip.open(temp_gz, "rb") as gz_in:
-            context = ET.iterparse(gz_in, events=("end",))
-            for _, elem in context:
-                if elem.tag == "channel":
-                    ch_id = elem.get("id", "").strip()
-                    display_name_elem = elem.find("display-name")
-                    display_name = (
-                        display_name_elem.text.strip().lower()
-                        if display_name_elem is not None and display_name_elem.text
-                        else ""
-                    )
+    for source_name, source_url in sources:
+        temp_gz = f"temp_{re.sub(r'[^a-zA-Z0-9]', '_', source_name)}.xml.gz"
+        print(f"[*] Downloading EPG stream from {source_name}: {source_url} ...")
 
-                    if ch_id.lower() in target_ids or display_name in target_ids:
-                        new_root.append(elem)
-                        matched_channel_ids.add(ch_id)
-                        kept_channels += 1
-                    else:
-                        elem.clear()
+        if not _download_stream(source_url, temp_gz):
+            if os.path.exists(temp_gz):
+                os.remove(temp_gz)
+            continue
 
-                elif elem.tag == "programme":
-                    prog_ch = elem.get("channel", "").strip()
-                    if prog_ch in matched_channel_ids or prog_ch.lower() in target_ids:
-                        new_root.append(elem)
-                        kept_programmes += 1
-                    else:
-                        elem.clear()
+        print(f"[*] Filtering and merging from {source_name}...")
+        kept_ch = 0
+        kept_prog = 0
 
-        print(f"[+] Retained in custom EPG: {kept_channels} channels and {kept_programmes} programmes.")
+        try:
+            with gzip.open(temp_gz, "rb") as gz_in:
+                context = ET.iterparse(gz_in, events=("end",))
+                for _, elem in context:
+                    if elem.tag == "channel":
+                        ch_id = elem.get("id", "").strip()
+                        ch_id_lower = ch_id.lower()
+                        display_name_elem = elem.find("display-name")
+                        display_name = (
+                            display_name_elem.text.strip().lower()
+                            if display_name_elem is not None and display_name_elem.text
+                            else ""
+                        )
+
+                        if ch_id_lower in target_ids or display_name in target_ids:
+                            if ch_id_lower not in seen_channels:
+                                new_root.append(elem)
+                                seen_channels.add(ch_id_lower)
+                                kept_ch += 1
+                            else:
+                                elem.clear()
+                        else:
+                            elem.clear()
+
+                    elif elem.tag == "programme":
+                        prog_ch = elem.get("channel", "").strip()
+                        prog_ch_lower = prog_ch.lower()
+                        start_time = elem.get("start", "").strip()
+
+                        if prog_ch_lower in seen_channels or prog_ch_lower in target_ids:
+                            slot_key = (prog_ch_lower, start_time)
+                            if slot_key not in seen_programmes:
+                                new_root.append(elem)
+                                seen_programmes.add(slot_key)
+                                kept_prog += 1
+                            else:
+                                elem.clear()
+                        else:
+                            elem.clear()
+
+            print(
+                f"[+] {source_name}: added {kept_ch} new channels and {kept_prog} programmes."
+            )
+
+        except Exception as e:
+            print(f"[-] Parsing error for {source_name}: {e}")
+        finally:
+            if os.path.exists(temp_gz):
+                os.remove(temp_gz)
+
+    if seen_channels or seen_programmes:
         tree = ET.ElementTree(new_root)
         with gzip.open(OUTPUT_EPG_FILE, "wb") as f_out:
             tree.write(f_out, encoding="utf-8", xml_declaration=True)
-        print(f"[+] Successfully generated {OUTPUT_EPG_FILE} ({os.path.getsize(OUTPUT_EPG_FILE) // 1024} KB)")
-
-    except Exception as e:
-        print(f"[-] Parsing error: {e}")
+        print(
+            f"[+] Successfully generated merged {OUTPUT_EPG_FILE} ({os.path.getsize(OUTPUT_EPG_FILE) // 1024} KB)"
+        )
+    else:
         _create_empty_epg()
-    finally:
-        if os.path.exists(temp_gz):
-            os.remove(temp_gz)
+
 
 def main():
-    # 1. Parse manual channels with local logos
     manual_channels = load_manual_channels()
 
-    # 2. Parse and merge external sources
     iptvru_channels = parse_m3u_stream(URL_IPTVRU, "IPTVru")
     loganet_channels = parse_m3u_stream(URL_LOGANET, "LoganetX")
     external_channels = merge_external_playlists(iptvru_channels, loganet_channels)
 
     manual_keys = {ch["name"].strip().lower() for ch in manual_channels}
-    filtered_external = [ch for ch in external_channels if ch["name"].strip().lower() not in manual_keys]
+    filtered_external = [
+        ch
+        for ch in external_channels
+        if ch["name"].strip().lower() not in manual_keys
+    ]
 
     print(f"[*] Verifying manual streams ({len(manual_channels)} channels)...")
     alive_manual = [ch for ch in manual_channels if check_stream(ch)]
@@ -421,16 +470,16 @@ def main():
         print("[-] Error: no playable streams found.")
         return
 
-    # 3. Sort channels strictly by defined category order
-    def category_sort_key(channel):
-        return CATEGORY_INDEX_MAP.get(channel["group"], len(CATEGORY_ORDER))
+    # Sort channels by category order first, then alphabetically by name within each category
+    def channel_sort_key(channel):
+        group_idx = CATEGORY_INDEX_MAP.get(channel["group"], len(CATEGORY_ORDER))
+        channel_name = channel["name"].strip().lower()
+        return (group_idx, channel_name)
 
-    final_list.sort(key=category_sort_key)
+    final_list.sort(key=channel_sort_key)
 
-    # 4. Generate filtered custom EPG file
     generate_custom_epg(final_list)
 
-    # 5. Generate final M3U playlist with custom GitHub Pages EPG link
     content = [f'#EXTM3U x-tvg-url="{CUSTOM_EPG_URL}"\n']
     for ch in final_list:
         tvg_id = ch["tvg_id"] or ch["name"]
@@ -453,6 +502,7 @@ def main():
     print(f"    - Playlist URL : https://{REPO_OWNER}.github.io/{REPO_NAME}/{OUTPUT_FILE}")
     print(f"    - Custom EPG   : {CUSTOM_EPG_URL}")
     print(f"    - Channels count: {len(final_list)}")
+
 
 if __name__ == "__main__":
     main()
