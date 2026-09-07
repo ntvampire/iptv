@@ -358,7 +358,7 @@ def generate_custom_epg(channels):
     kept_programmes = 0
 
     try:
-        with gzip.open(temp_gz, "rb") as gz_in:
+with gzip.open(temp_gz, "rb") as gz_in:
             context = ET.iterparse(gz_in, events=("end",))
             for _, elem in context:
                 if elem.tag == "channel":
