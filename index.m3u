@@ -591,9 +591,6 @@ http://uiptv.do.am/1ufc/603282189/playlist.m3u8
 #EXTINF:-1 tvg-id="shanson-tv" tvg-logo="https://iptvx.one/picons/shanson-tv.png" group-title="Музыка",Шансон ТВ
 https://uiptv.do.am/1ufc/602079679/playlist.m3u8
 
-#EXTINF:-1 tvg-id="Шансон-ТВ" group-title="Музыка",Шансон-ТВ
-http://hls-shansontv.cdnvideo.ru/shansontv/shansontv.sdp/playlist.m3u8
-
 #EXTINF:-1 tvg-id="2na2" tvg-logo="https://iptvx.one/picons/2na2.png" group-title="Развлекательные",2x2
 https://zabava-htlive.cdn.ngenix.net/hls/CH_2X2/variant.m3u8
 
@@ -1017,9 +1014,6 @@ https://cdn.ntv.ru/unknown_russia/tracks-v1a1/playlist.m3u8
 #EXTINF:-1 tvg-id="Неизвестная Россия HD" group-title="Познавательные",Неизвестная Россия HD
 http://cdn2.ntv.ru/unknown_russia/tracks-v1a1/mono.m3u8
 
-#EXTINF:-1 tvg-id="Океан" group-title="Познавательные",Океан
-http://217.11.177.57/streams/media/teatr_720x576/index.m3u8
-
 #EXTINF:-1 tvg-id="otkryty-mir" tvg-logo="https://iptvx.one/picons/otkryty-mir.png" group-title="Познавательные",Открытый мир
 http://v4.proofix.ru/0mir/index.m3u8
 
@@ -1092,9 +1086,6 @@ http://stream.mcquack.net/178/index.m3u8
 #EXTINF:-1 tvg-id="KHL Prime HD" group-title="Спорт",KHL Prime HD
 http://45.145.32.13:20440/khl_prime/index.m3u8?token=test
 
-#EXTINF:-1 tvg-id="Okko Спорт. Прайм HD" group-title="Спорт",Okko Спорт. Прайм HD
-http://185.221.213.254:8080/Okko/tracks-v1a1/index.m3u8
-
 #EXTINF:-1 tvg-id="QazSport HD" group-title="Спорт",QazSport HD
 http://stream.mcquack.net/72/index.m3u8
 
@@ -1166,6 +1157,12 @@ https://live-3.otcnet.ru/sportivny/index.m3u8
 
 #EXTINF:-1 tvg-id="ТВ Спорт" group-title="Спорт",ТВ Спорт
 http://live-3.otcnet.ru/sportivny/index.m3u8
+
+#EXTINF:-1 tvg-id="Футбол" group-title="Спорт",Футбол
+http://radio.tvs.by:8088/Setanta1/index.m3u8
+
+#EXTINF:-1 tvg-id="360-news" group-title="Новости",360° Новости
+https://cdn-evacoder-tv.facecast.io/evacoder_hls_hi/UBZfFgtKB1JwTwoDERNQVGGs/2.m3u8
 
 #EXTINF:-1 tvg-id="360-news" group-title="Новости",360° Новости HD
 https://edge-tv-ll.facecast.io/evacoder_hls_hi/UBZfFgtKB1JwTwoDERNQVGGs/0.m3u8
