@@ -216,9 +216,6 @@ http://flussonic.mkpnet.ru/tv-e107d21a90cb808f/video.m3u8
 #EXTINF:-1 tvg-id="viju+ Serial" group-title="Кино и сериалы",viju+ Serial
 http://stream.mcquack.net/311/index.m3u8
 
-#EXTINF:-1 tvg-id="viju+ Serial HD" group-title="Кино и сериалы",viju+ Serial HD
-https://stream2.somon.tv/vipserial/index.m3u8
-
 #EXTINF:-1 tvg-id="Видеокассета HD" group-title="Кино и сериалы",Видеокассета HD
 https://lbgo.bozztv.com/ssh101/ssh101/livebest90e/chunks.m3u8?lb_backend_hint=7
 
@@ -723,9 +720,6 @@ https://rt-vlg-yola-htlive.cdn.ngenix.net/hls/CH_R03_METR/variant.m3u8
 #EXTINF:-1 tvg-id="Наша тема" group-title="Развлекательные",Наша тема
 http://flussonic.mkpnet.ru/tv-c922a9201f5073f8/video.m3u8
 
-#EXTINF:-1 tvg-id="Наша тема HD" group-title="Развлекательные",Наша тема HD
-http://live-3.otcnet.ru/nashatema/index.m3u8
-
 #EXTINF:-1 tvg-id="Ностальгия" group-title="Развлекательные",Ностальгия
 http://176.118.197.101/Nostalgiya/mono.m3u8
 
@@ -1073,9 +1067,6 @@ https://flussonic.mkpnet.ru/tv-1a9441fd32d63873/video.m3u8
 
 #EXTINF:-1 tvg-id="Fast&FunBox HD" group-title="Спорт",Fast&FunBox HD
 https://dash3.antik.sk/live/test_fast_and_funbox_medium_atk/playlist.m3u8
-
-#EXTINF:-1 tvg-id="FightBox" group-title="Спорт",FightBox
-https://stream2.somon.tv/Fightbox/index.m3u8
 
 #EXTINF:-1 tvg-id="Fuel TV HD" group-title="Спорт",Fuel TV HD
 https://stream1.cinerama.uz/1061/tracks-v1a1/mono.m3u8
