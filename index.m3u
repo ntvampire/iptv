@@ -696,6 +696,9 @@ http://uiptv.do.am/1ufc/603282189/playlist.m3u8
 #EXTINF:-1 tvg-id="shanson-tv" tvg-logo="https://iptvx.one/picons/shanson-tv.png" group-title="Музыка",Шансон ТВ
 https://uiptv.do.am/1ufc/602079679/playlist.m3u8
 
+#EXTINF:-1 tvg-id="Шансон-ТВ" group-title="Музыка",Шансон-ТВ
+http://hls-shansontv.cdnvideo.ru/shansontv/shansontv.sdp/playlist.m3u8
+
 #EXTINF:-1 tvg-id="2na2" tvg-logo="https://iptvx.one/picons/2na2.png" group-title="Развлекательные",2x2
 https://zabava-htlive.cdn.ngenix.net/hls/CH_2X2/variant.m3u8
 
@@ -794,9 +797,6 @@ http://89.33.29.115:8080/Glazami_turista_HD/index.m3u8
 
 #EXTINF:-1 tvg-id="glazami-turista" group-title="Развлекательные",Глазами туриста HD
 http://stream.mcquack.net/304/index.m3u8
-
-#EXTINF:-1 tvg-id="deviatka" tvg-logo="https://iptvx.one/picons/deviatka.png" group-title="Развлекательные",Девятка
-http://devyatka.iptv2022.com/tracks-v1a1/mono.m3u8
 
 #EXTINF:-1 tvg-id="dialogi-o-rybalke" group-title="Развлекательные",Диалоги о рыбалке
 http://stream.mcquack.net/264/index.m3u8
@@ -1403,6 +1403,9 @@ https://edge50.dc.beltelecom.by/ngtrk/smil:informacionnyy.smil/chunklist_b101000
 
 #EXTINF:-1 tvg-id="Первый информационный HD" group-title="Новости",Первый информационный HD
 https://edge52.dc.beltelecom.by/ngtrk/_definst_/smil:informacionnyy.smil/chunklist_w499524774_b5160000_sleng.m3u8
+
+#EXTINF:-1 tvg-id="pro-business" tvg-logo="https://iptvx.one/picons/pro-business.png" group-title="Новости",Про бизнес
+https://tv-streaming.bsh.ru:21938/probusiness/probusiness.stream/chunklist.m3u8
 
 #EXTINF:-1 tvg-id="РБК" group-title="Новости",РБК
 http://online-video.rbc.ru/spb/rbctv_spb.m3u8
