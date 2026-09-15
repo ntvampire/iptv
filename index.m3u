@@ -312,12 +312,6 @@ http://176.118.197.101/Kinopokaz/mono.m3u8
 #EXTINF:-1 tvg-id="kinopokaz" group-title="Кино и сериалы",Кинопоказ HD
 http://stream.mcquack.net/64/index.m3u8
 
-#EXTINF:-1 tvg-id="kinopremiera-hd" group-title="Кино и сериалы",Кинопремьера HD
-http://5.188.159.128:8070/KINOPREMIERA/index.m3u8
-
-#EXTINF:-1 tvg-id="kinosvidanie" group-title="Кино и сериалы",Киносвидание
-http://5.188.159.128:8070/kinosvidanie/index.m3u8
-
 #EXTINF:-1 tvg-id="kinosvidanie" group-title="Кино и сериалы",Киносвидание HD
 http://stream.mcquack.net/171/index.m3u8
 
@@ -636,6 +630,9 @@ https://channels.trace.plus/Traceprod/VANILLA_hd/index.m3u8
 #EXTINF:-1 tvg-id="xite-hits" tvg-logo="https://ntvampire.github.io/iptv/logos/xite-hits.png" group-title="Музыка",XITE Hits UK
 https://amg01243-xitenetworksint-hitsuk-samsunguk-mvovq.amagi.tv/playlist/amg01243-xitenetworksint-hitsuk-samsunguk/playlist.m3u8
 
+#EXTINF:-1 tvg-id="vostok-tv" tvg-logo="https://iptvx.one/picons/vostok-tv.png" group-title="Музыка",Восток ТВ
+http://911play.ru:3456/live/VostokSite/cdnVostaoc911tv123456/489.m3u8
+
 #EXTINF:-1 tvg-id="zhar-ptica" tvg-logo="https://iptvx.one/picons/zhar-ptica.png" group-title="Музыка",Жар Птица
 https://bl.rutube.ru/livestream/c93be53cba8a4ba6ac311b395a00f4d5/index.m3u8?s=2r54ZPgnc2r3TX_Z4F-zEg&e=2070623526&scheme=https
 
@@ -806,6 +803,9 @@ http://stream1.cinerama.uz/1421/mono.m3u8
 
 #EXTINF:-1 tvg-id="zhivi" group-title="Развлекательные",Живи!
 https://stream1.cinerama.uz/1419/tracks-v1a1/mono.m3u8
+
+#EXTINF:-1 tvg-id="zagorodnaya-zhizn" tvg-logo="https://iptvx.one/picons/zagorodnaya-zhizn.png" group-title="Развлекательные",Загородная Жизнь
+http://185.57.68.33/40/index.m3u8
 
 #EXTINF:-1 tvg-id="zagorodny" group-title="Развлекательные",Загородный
 http://stream1.cinerama.uz/1044/tracks-v1a1/mono.m3u8
@@ -1343,6 +1343,9 @@ https://edge50.dc.beltelecom.by/ngtrk/smil:informacionnyy.smil/chunklist_b101000
 
 #EXTINF:-1 tvg-id="Первый информационный HD" group-title="Новости",Первый информационный HD
 https://edge52.dc.beltelecom.by/ngtrk/_definst_/smil:informacionnyy.smil/chunklist_w499524774_b5160000_sleng.m3u8
+
+#EXTINF:-1 tvg-id="pro-business" tvg-logo="https://iptvx.one/picons/pro-business.png" group-title="Новости",Про бизнес
+https://tv-streaming.bsh.ru:21938/probusiness/probusiness.stream/chunklist.m3u8
 
 #EXTINF:-1 tvg-id="РБК" group-title="Новости",РБК
 http://online-video.rbc.ru/spb/rbctv_spb.m3u8
