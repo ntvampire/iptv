@@ -312,6 +312,9 @@ http://176.118.197.101/Kinopokaz/mono.m3u8
 #EXTINF:-1 tvg-id="kinopokaz" group-title="Кино и сериалы",Кинопоказ HD
 http://stream.mcquack.net/64/index.m3u8
 
+#EXTINF:-1 tvg-id="kinosvidanie" group-title="Кино и сериалы",Киносвидание
+http://5.188.159.128:8070/kinosvidanie/index.m3u8
+
 #EXTINF:-1 tvg-id="kinosvidanie" group-title="Кино и сериалы",Киносвидание HD
 http://stream.mcquack.net/171/index.m3u8
 
@@ -1337,9 +1340,6 @@ https://hls-mirtv.cdnvideo.ru/mirtv-parampublish/mir24_2500/playlist.m3u8
 
 #EXTINF:-1 tvg-id="mir-24" tvg-logo="https://iptvx.one/picons/mir24.png" group-title="Новости",Мир 24 HD
 http://hls.mirtv.cdnvideo.ru/mirtv-parampublish/mir24_2500/playlist.m3u8
-
-#EXTINF:-1 tvg-id="Первый информационный" group-title="Новости",Первый информационный
-https://edge50.dc.beltelecom.by/ngtrk/smil:informacionnyy.smil/chunklist_b1010000_sleng.m3u8
 
 #EXTINF:-1 tvg-id="Первый информационный HD" group-title="Новости",Первый информационный HD
 https://edge52.dc.beltelecom.by/ngtrk/_definst_/smil:informacionnyy.smil/chunklist_w499524774_b5160000_sleng.m3u8
