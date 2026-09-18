@@ -1,5 +1,8 @@
 #EXTM3U x-tvg-url="https://ntvampire.github.io/iptv/epg.xml.gz"
 
+#EXTINF:-1 tvg-id="CGTN Русский" group-title="Общие",CGTN Русский
+http://english-livetx.cgtn.com/hls/LSvexABhNipibK5KRuUkvHZ7220802LSTeze9o8tdFXMHsb1VosgoT220802_hd.m3u8
+
 #EXTINF:-1 tvg-id="CGTN Русский HD" group-title="Общие",CGTN Русский HD
 https://russian-liveali.cgtn.com/hls/LSvexABhNipibK5KRuUkvHZ7220802LSTeze9o8tdFXMHsb1VosgoT220802cd/playlist.m3u8
 
@@ -231,9 +234,6 @@ http://195.64.140.147:10063/63
 #EXTINF:-1 tvg-id="Viasat Kino Comedy HD" group-title="Кино и сериалы",Viasat Kino Comedy HD
 http://ukr2.ukrainske.tv/493/video.m3u8
 
-#EXTINF:-1 tvg-id="viju TV1000" group-title="Кино и сериалы",viju TV1000
-http://217.11.177.56/streams/media/tv1000_720x576/index.m3u8
-
 #EXTINF:-1 tvg-id="viju TV1000 action" group-title="Кино и сериалы",viju TV1000 action
 http://fs.uplink.kz/viju_tv1000_action/tracks-v1a1/mono.ts.m3u8?token=onlinetv
 
@@ -263,9 +263,6 @@ http://flussonic.mkpnet.ru/tv-e107d21a90cb808f/video.m3u8
 
 #EXTINF:-1 tvg-id="viju+ Serial" group-title="Кино и сериалы",viju+ Serial
 http://stream.mcquack.net/311/index.m3u8
-
-#EXTINF:-1 tvg-id="viju+ Serial HD" group-title="Кино и сериалы",viju+ Serial HD
-https://stream2.somon.tv/vipserial/index.m3u8
 
 #EXTINF:-1 tvg-id="domkino" tvg-logo="https://iptvx.one/picons/domkino.png" group-title="Кино и сериалы",Дом Кино
 https://streaming.televizor-24-tochka.ru/live/44.m3u8
