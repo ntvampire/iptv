@@ -1,4 +1,4 @@
-#EXTM3U x-tvg-url="https://ntvampire.github.io/iptv/epg.xml.gz"
+#EXTM3U x-tvg-url="https://ntvampire.github.io/IPTV/epg.xml.gz"
 
 #EXTINF:-1 tvg-id="CGTN Русский" group-title="Общие",CGTN Русский
 http://english-livetx.cgtn.com/hls/LSvexABhNipibK5KRuUkvHZ7220802LSTeze9o8tdFXMHsb1VosgoT220802_hd.m3u8
@@ -281,9 +281,6 @@ http://89.33.29.115:8080/dorama_hd/index.m3u8
 
 #EXTINF:-1 tvg-id="evrokino" tvg-logo="https://iptvx.one/picons/eurokino.png" group-title="Кино и сериалы",Еврокино
 http://176.118.197.101/Evrokino/index.m3u8
-
-#EXTINF:-1 tvg-id="indiyskoe-kino" group-title="Кино и сериалы",Индийское кино
-http://188.113.190.12/329/mono.m3u8
 
 #EXTINF:-1 tvg-id="kineko" group-title="Кино и сериалы",Кинеко
 http://46.32.176.50/foxrussia/index.m3u8
@@ -612,28 +609,28 @@ https://stream1.cinerama.uz/1202/tracks-v1a1/mono.m3u8
 #EXTINF:-1 tvg-id="RU.TV HD" group-title="Музыка",RU.TV HD
 http://flussonic.mkpnet.ru/tv-64b2c4ff13365817/video.m3u8
 
-#EXTINF:-1 tvg-id="trace-latina" tvg-logo="https://ntvampire.github.io/iptv/logos/trace-latina.png" group-title="Музыка",Trace Latina
+#EXTINF:-1 tvg-id="trace-latina" tvg-logo="https://ntvampire.github.io/IPTV/logos/trace-latina.png" group-title="Музыка",Trace Latina
 https://amg01131-tracetv-tracelatina-glewed-vtnk7.amagi.tv/playlist.m3u8
 
-#EXTINF:-1 tvg-id="trace-uk" tvg-logo="https://ntvampire.github.io/iptv/logos/trace-uk.png" group-title="Музыка",Trace UK
+#EXTINF:-1 tvg-id="trace-uk" tvg-logo="https://ntvampire.github.io/IPTV/logos/trace-uk.png" group-title="Музыка",Trace UK
 https://d2l4tng0wskzvn.cloudfront.net/Trace_GB.m3u8
 
-#EXTINF:-1 tvg-id="trace-urban" tvg-logo="https://ntvampire.github.io/iptv/logos/trace-urban.png" group-title="Музыка",Trace Urban
+#EXTINF:-1 tvg-id="trace-urban" tvg-logo="https://ntvampire.github.io/IPTV/logos/trace-urban.png" group-title="Музыка",Trace Urban
 https://channels.trace.plus/Traceprod/URBAN_INTER_hd/index.m3u8
 
-#EXTINF:-1 tvg-id="trace-urban-australia" tvg-logo="https://ntvampire.github.io/iptv/logos/trace-urban-australia.png" group-title="Музыка",Trace Urban Australia
+#EXTINF:-1 tvg-id="trace-urban-australia" tvg-logo="https://ntvampire.github.io/IPTV/logos/trace-urban-australia.png" group-title="Музыка",Trace Urban Australia
 https://lightning-traceurban-samsungau.amagi.tv/playlist.m3u8
 
-#EXTINF:-1 tvg-id="trace-urban-france" tvg-logo="https://ntvampire.github.io/iptv/logos/trace-urban-france.png" group-title="Музыка",Trace Urban France
+#EXTINF:-1 tvg-id="trace-urban-france" tvg-logo="https://ntvampire.github.io/IPTV/logos/trace-urban-france.png" group-title="Музыка",Trace Urban France
 https://channels.trace.plus/Traceprod/URBAN_FR_hd/index.m3u8
 
-#EXTINF:-1 tvg-id="trace-urban-hd" tvg-logo="https://ntvampire.github.io/iptv/logos/trace-urban-hd.png" group-title="Музыка",Trace Urban HD
+#EXTINF:-1 tvg-id="trace-urban-hd" tvg-logo="https://ntvampire.github.io/IPTV/logos/trace-urban-hd.png" group-title="Музыка",Trace Urban HD
 https://amg01131-tracetv-amg01131c1-rakuten-us-1081.playouts.now.amagi.tv/playlist/amg01131-tracetvfast-traceurban-rakutenus/playlist.m3u8
 
-#EXTINF:-1 tvg-id="trace-vanilla" tvg-logo="https://ntvampire.github.io/iptv/logos/trace-vanilla.png" group-title="Музыка",Trace Vanilla
+#EXTINF:-1 tvg-id="trace-vanilla" tvg-logo="https://ntvampire.github.io/IPTV/logos/trace-vanilla.png" group-title="Музыка",Trace Vanilla
 https://channels.trace.plus/Traceprod/VANILLA_hd/index.m3u8
 
-#EXTINF:-1 tvg-id="xite-hits" tvg-logo="https://ntvampire.github.io/iptv/logos/xite-hits.png" group-title="Музыка",XITE Hits UK
+#EXTINF:-1 tvg-id="xite-hits" tvg-logo="https://ntvampire.github.io/IPTV/logos/xite-hits.png" group-title="Музыка",XITE Hits UK
 https://amg01243-xitenetworksint-hitsuk-samsunguk-mvovq.amagi.tv/playlist/amg01243-xitenetworksint-hitsuk-samsunguk/playlist.m3u8
 
 #EXTINF:-1 tvg-id="vostok-tv" tvg-logo="https://iptvx.one/picons/vostok-tv.png" group-title="Музыка",Восток ТВ
@@ -905,9 +902,6 @@ https://zabava-htlive.cdn.ngenix.net/hls/CH_STS/variant.m3u8
 
 #EXTINF:-1 tvg-id="sts" group-title="Развлекательные",СТС (Архив)
 https://zabava-htlive.cdn.ngenix.net/hls/CH_STS/variant.m3u8
-
-#EXTINF:-1 tvg-id="sts-pl7" group-title="Развлекательные",СТС +7 (Архив)
-http://zabava-htlive.cdn.ngenix.net/hls/CH_STS_7/variant.m3u8
 
 #EXTINF:-1 tvg-id="СТС HD" group-title="Развлекательные",СТС HD
 http://89.33.29.115:8080/STS_HD/index.m3u8
